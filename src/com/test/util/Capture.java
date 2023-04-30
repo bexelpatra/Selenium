@@ -101,10 +101,10 @@ public Capture(String base_url,boolean show) throws Exception {
 			System.out.println("\t\t"+ob + " : \t " + new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
 			propertiesMap.put((String) ob, new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
 		}
-		saveDir = con(properties.getOrDefault("saveDir",saveDir).toString());
+		saveDir = IsoToUTF(properties.getOrDefault("saveDir",saveDir).toString());
 		
 	}
-	private String con(String iso) {
+	private String IsoToUTF(String iso) {
 		String a = "";
 		try {
 			a = new String(iso.getBytes("ISO-8859-1"), "utf-8");
@@ -210,17 +210,9 @@ public Capture(String base_url,boolean show) throws Exception {
 			int b = tempstr.indexOf('\'', a + 1);
 			tempstr = tempstr.substring(a + 1, b);
 
-			// 새창에서 열기
-			// 나름 보안신경쓴다고 이름 안 보이게 하려고 했던 것들
-//			String secu = "temp.onload = (e)=>{Array.prototype.forEach.call(temp.document.getElementsByTagName('div'), (element) => {element.innerHTML = element.innerHTML.replace('최재성','***').replace('a45hvn','이메일주소').replace('01092411211','01012341234')}); $('#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(4) > td:nth-child(2)').text('위반!!!');}";
-//
-//			js.executeScript("temp[" + i
-//					+ "] = window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="
-//					+ tempstr + "&title=" + i + "');");
-			
+			// 새창에서 열기			
 			js.executeScript("window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="+ tempstr + "&title=" + i + "');");
 			
-//			js.executeScript("Array.prototype.forEach.call(temp["+i+"].document.getElementsByTagName('div'), (element) => {element.innerHTML = element.innerHTML.replace('최재성','***').replace('a45hvn','이메일주소').replace('01092411211','01012341234')}); $('#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(4) > td:nth-child(2)').text('위반!!!');");
 //			driver.switchTo().window(mainWindow);
 			// 10개씩 처리하기
 			if ((i + 1) % 10 == 0) {
@@ -239,7 +231,6 @@ public Capture(String base_url,boolean show) throws Exception {
 		}
 		driver.switchTo().window(mainWindow);
 		sleep(100);
-//		js.executeScript("temp.forEach((e)=>{Array.prototype.forEach.call(e.document.getElementsByTagName('div'), (element) => {element.innerHTML = element.innerHTML.replace('최재성','***').replace('a45hvn','이메일주소').replace('01092411211','01012341234')})e.document.getElementsByTagName('td')[5].innerText='위반오토바이';};)");
 
 	}
 	private void loadKeypad(Map<String, String> keyMap) throws FileNotFoundException, IOException, ParseException {
