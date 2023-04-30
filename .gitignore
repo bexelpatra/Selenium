@@ -1,4 +1,7 @@
 
 src/singo.properties
+bin/singo.properties
+src/*.properties
+bin/*.properties
 *.png
 *.properties
