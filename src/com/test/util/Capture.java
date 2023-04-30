@@ -49,31 +49,33 @@ public class Capture {
 	private final String WEB_DRIVER_ID = "webdriver.chrome.driver";
 	private String WEB_DRIVER_PATH = "src/chromedriver.exe";
 	private String base_url;
-	private Map<String,String> propertiesMap;
+	private Map<String, String> propertiesMap;
 
 	private String saveDir = "src/images/";
 
-public Capture(String base_url,boolean show) throws Exception {
-		
+	public Capture(String base_url, boolean show) throws Exception {
+
 		super();
 
 		// os 에 따른 크롬드라이버 선택
-//		String osName = System.getProperty("os.name").toLowerCase();
+		String osName = System.getProperty("os.name").toLowerCase();
 //		if (osName != null && osName.contains("windows")) {
 //			WEB_DRIVER_PATH += ".exe";
 //		} else if (osName != null && osName.contains("linux")) {
 //			WEB_DRIVER_PATH += "Linux";
 //		}
-//		System.out.printf("os name is : %s\n", osName);
+		System.out.printf("os name is : %s\n", osName);
 		System.out.println(WEB_DRIVER_PATH);
 
 		System.setProperty(WEB_DRIVER_ID, WEB_DRIVER_PATH);
 		this.base_url = base_url;
 		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--headless");	
-		options.addArguments("--no-sandbox");
-		options.addArguments("--disable-gpu");
-		options.addArguments("--disable-dev-shm-usage");
+
+		// 도커를 이용해 리눅스 환경에서 실행을 시도하던 부분
+//		options.addArguments("--headless");	
+//		options.addArguments("--no-sandbox");
+//		options.addArguments("--disable-gpu");
+//		options.addArguments("--disable-dev-shm-usage");
 
 		options.setCapability("ignoreProtectedModeSettings", true);
 		options.setCapability("acceptInsecureCerts", true);
@@ -82,29 +84,33 @@ public Capture(String base_url,boolean show) throws Exception {
 		waiter = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));
 		js = (JavascriptExecutor) driver;
 		loadProperties();
-		File savedir = new File(saveDir); 
-		if(!savedir.exists()) {
+		File savedir = new File(saveDir);
+		if (!savedir.exists()) {
 			savedir.mkdirs();
 		}
 	}
-	private void loadProperties() throws Exception{
+
+	private void loadProperties() throws Exception {
 		Properties properties = new Properties();
 		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo.properties"))));
 
-		if(propertiesMap == null) {
+		if (propertiesMap == null) {
 			propertiesMap = new HashMap<>();
 		}
-		
+
 		System.out.println();
 		System.out.println("\t\tchecking your properties file\n");
-		for (Object ob: properties.keySet()){
-			System.out.println("\t\t"+ob + " : \t " + new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
-			propertiesMap.put((String) ob, new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
+		for (Object ob : properties.keySet()) {
+			System.out.println("\t\t" + ob + " : \t "
+					+ new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
+			propertiesMap.put((String) ob,
+					new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
 		}
-		saveDir = IsoToUTF(properties.getOrDefault("saveDir",saveDir).toString());
-		
+		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
+
 	}
-	private String IsoToUTF(String iso) {
+
+	private String convertEncoding(String iso) {
 		String a = "";
 		try {
 			a = new String(iso.getBytes("ISO-8859-1"), "utf-8");
@@ -114,12 +120,13 @@ public Capture(String base_url,boolean show) throws Exception {
 		}
 		return a;
 	}
+
 	public void doJob() {
 		driver.get(base_url);
 		sleep(1000);
 		Actions action = new Actions(driver);
 		Window window = driver.manage().window();
-		System.out.println(window.getSize().getWidth() + " : "+ window.getSize().getHeight());
+		System.out.println(window.getSize().getWidth() + " : " + window.getSize().getHeight());
 		try {
 			// 혹시 alert가 안 뜨는 경우도 있으니까
 			waiter.until(ExpectedConditions.alertIsPresent());
@@ -128,7 +135,7 @@ public Capture(String base_url,boolean show) throws Exception {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		
+
 		js.executeScript("document.getElementById('checkpwd').setAttribute('checked',true)");
 		sleep(500);
 		// 가상키패드 체크하기
@@ -137,13 +144,13 @@ public Capture(String base_url,boolean show) throws Exception {
 		try {
 			loadKeypad(keyMap);
 		} catch (Exception e) {
-			// 저장된 키보드가 없으면 키보드를 읽어온다.		
+			// 저장된 키보드가 없으면 키보드를 읽어온다.
 			keypadExtract(keyMap);
 		}
 
 		// 키패드 저장하기
 		saveKeypad(keyMap);
-		
+
 		// 로그인 부분
 		String pw = propertiesMap.get("password");
 		StringBuilder sb = new StringBuilder();
@@ -161,13 +168,10 @@ public Capture(String base_url,boolean show) throws Exception {
 		driver.findElement(By.xpath("//*[@id=\"btn_login\"]")).click();
 
 		sleep(500);
-		// 로그인 시마이데스요
+		// 로그인 완료
 
 		// 리스트 돌면서 캡쳐 준비
 		driver.get("http://onetouch.police.go.kr/mypage/myGiveInfoList.do");
-		js.executeScript("document.getElementsByTagName('h3')[0].innerText = ''"); // 삭제 예정
-		js.executeScript("document.getElementsByClassName('ff')[0].innerText = '*** 님  로그아웃'");// 삭제 예정
-
 		sleep(200);
 		String mainWindow = driver.getWindowHandle();
 
@@ -183,13 +187,14 @@ public Capture(String base_url,boolean show) throws Exception {
 		int count = Integer
 				.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
 		int page = 1;
-		if (count < 20) {
-			System.out.println("total count is to low, you can use this when the count is equal or lager than 20");
-			return;
-		}
 
+		// if (count < 20) {
+//			System.out.println("total count is to low, you can use this when the count is equal or lager than 20");
+//			return;
+//		}
+		System.out.println("total count : " + count);
 		for (int i = 0; i < count; i++) {
-			int temp = (i) % 10 + 1;
+			int temp = (i) % 10 + 1; // 화면 속 순서
 			// 처리상태
 			webElement = driver.findElement(
 					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
@@ -197,7 +202,10 @@ public Capture(String base_url,boolean show) throws Exception {
 			String chargeResult = webElement.getText();
 
 			// 답변 완료 아니면 스킵
-			if (chargeResult == null || !chargeResult.startsWith("답변완료")) { 
+			if (chargeResult == null || !chargeResult.startsWith("답변완료")) {
+				if (temp == 10) {
+					js.executeScript(String.format("linkPage(%d)", page += 1));
+				}
 				continue;
 			}
 
@@ -205,42 +213,53 @@ public Capture(String base_url,boolean show) throws Exception {
 			webElement = driver.findElement(
 					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
 							+ ") > td:nth-child(2) > a"));
+			// 페이지 이동을 위해 parameter 추출
 			String tempstr = webElement.getAttribute("href").split(":")[1];
 			int a = tempstr.indexOf('\'');
 			int b = tempstr.indexOf('\'', a + 1);
 			tempstr = tempstr.substring(a + 1, b);
+			webElement = driver.findElement(
+					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
+							+ ") > td:nth-child(1)"));
 
-			// 새창에서 열기			
-			js.executeScript("window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="+ tempstr + "&title=" + i + "');");
-			
+			String imageIndex = webElement.getText();
+			// 새창에서 열기
+			js.executeScript(
+					"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="
+							+ tempstr + "&title=" + imageIndex + "');");
+
 //			driver.switchTo().window(mainWindow);
 			// 10개씩 처리하기
-			if ((i + 1) % 10 == 0) {
+//			if ((i + 1) % 10 == 0) {
+			if (driver.getWindowHandles().size() - 1 % 10 == 0) {
 				for (String w : driver.getWindowHandles()) {
-					if(w.equals(mainWindow)) continue;
-					imageSave(mainWindow, w);			
+					if (w.equals(mainWindow))
+						continue;
+					imageSave(mainWindow, w);
 				}
 				driver.switchTo().window(mainWindow);
-				js.executeScript(String.format("linkPage(%d)", page+=1));
 				sleep(100);
 			}
 		}
 		for (String w : driver.getWindowHandles()) {
-			if(w.equals(mainWindow)) continue;
-			imageSave(mainWindow, w);			
+			if (w.equals(mainWindow))
+				continue;
+			imageSave(mainWindow, w);
 		}
 		driver.switchTo().window(mainWindow);
 		sleep(100);
 
 	}
+
 	private void loadKeypad(Map<String, String> keyMap) throws FileNotFoundException, IOException, ParseException {
-		BufferedReader reader =new BufferedReader(new FileReader(new File("src/keypad.txt")));
+		BufferedReader reader = new BufferedReader(new FileReader(new File("src/keypad.txt")));
 		String jsonKeypad = reader.readLine();
 		JSONObject keyJO = (JSONObject) new JSONParser().parse(jsonKeypad);
 		for (Object key : keyJO.keySet()) {
 			keyMap.put(key.toString(), keyJO.get(key).toString());
 		}
 	}
+
 	private void keypadExtract(Map<String, String> keyMap) {
 		String handle = "";
 		String key = "";
@@ -266,6 +285,7 @@ public Capture(String base_url,boolean show) throws Exception {
 			js.executeScript(handle);
 		}
 	}
+
 	private void saveKeypad(Map<String, String> keyMap) {
 		String keypadjson = new JSONObject().toJSONString(keyMap);
 		try {
@@ -280,21 +300,21 @@ public Capture(String base_url,boolean show) throws Exception {
 	}
 
 	private void imageSave(String mainWindow, String windowName) {
-			driver.switchTo().window(windowName);
-			webElement = driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]"));
-			int height = webElement.getSize().getHeight();
-			
-			int n = (int) height / 400 + 1;
-			File[] scrFile = new File[n];
-			for (int k = 0; k < n; k++) {
-				scrFile[k] = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-				js.executeScript("window.scrollTo(0," + 400 * (k + 1) + ")");
-				sleep(50);
-			}
-			mergeImage( scrFile, 
-						driver.getCurrentUrl().split("title")[1].substring(1) + driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[1]/table/tbody/tr[4]/td[1]")).getText(),
-						height);
-			driver.close();
+		driver.switchTo().window(windowName);
+		webElement = driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]"));
+		int height = webElement.getSize().getHeight();
+
+		int n = (int) height / 400 + 1;
+		File[] scrFile = new File[n];
+		for (int k = 0; k < n; k++) {
+			scrFile[k] = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+			js.executeScript("window.scrollTo(0," + 400 * (k + 1) + ")");
+			sleep(10);
+		}
+		mergeImage(scrFile, driver.getCurrentUrl().split("title")[1].substring(1) + driver
+				.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[1]/table/tbody/tr[4]/td[1]")).getText(),
+				height);
+		driver.close();
 	}
 
 	private void mergeImage(File[] images, String fileName, int h) {
@@ -311,8 +331,8 @@ public Capture(String base_url,boolean show) throws Exception {
 				minus = is[i].getHeight();
 			}
 			// 파일 높이 조정
-			height -= ( (minus/2-30)*(is.length-1));
-			
+			height -= ((minus / 2 - 30) * (is.length - 1));
+
 			BufferedImage mergedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics = (Graphics2D) mergedImage.getGraphics();
 			graphics.setBackground(Color.WHITE);
