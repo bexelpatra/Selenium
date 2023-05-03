@@ -72,6 +72,8 @@ public class Capture {
 		ChromeOptions options = new ChromeOptions();
 
 		// 도커를 이용해 리눅스 환경에서 실행을 시도하던 부분
+		//-> 보류, 화면없이 실행시 크기가 800 x 400으로 나온다. 이거 캡쳐하려면 새로 merge 외에도 가로 merge를 해야하기 때문....
+		// 크롬웹앱으로 작업 진행 예정
 //		options.addArguments("--headless");	
 //		options.addArguments("--no-sandbox");
 //		options.addArguments("--disable-gpu");
@@ -136,9 +138,9 @@ public class Capture {
 			e.printStackTrace();
 		}
 
+		// 가상키패드 체크하기 
 		js.executeScript("document.getElementById('checkpwd').setAttribute('checked',true)");
 		sleep(500);
-		// 가상키패드 체크하기
 		Map<String, String> keyMap = new HashMap<>();
 		// 저장된 키패드 목록이 있으면 불러온다.
 		try {
@@ -194,52 +196,52 @@ public class Capture {
 //		}
 		System.out.println("total count : " + count);
 		for (int i = 0; i < count; i++) {
-			int temp = (i) % 10 + 1; // 화면 속 순서
+			int Nth = (i) % 10 + 1; // 화면 속 순서
 			// 처리상태
 			webElement = driver.findElement(
-					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
+					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
 							+ ") > td:nth-child(5)"));
 			String chargeResult = webElement.getText();
 
 			// 답변 완료 아니면 스킵
-			if (chargeResult == null || !chargeResult.startsWith("답변완료")) {
-				if (temp == 10) {
-					js.executeScript(String.format("linkPage(%d)", page += 1));
+			if (chargeResult != null && chargeResult.startsWith("답변완료")) {				
+				// 클릭 이벤트 관련 a태그
+				webElement = driver.findElement(
+						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
+								+ ") > td:nth-child(2) > a"));
+				// 페이지 이동을 위해 parameter 추출
+				String tempstr = webElement.getAttribute("href").split(":")[1];
+				int a = tempstr.indexOf('\'');
+				int b = tempstr.indexOf('\'', a + 1);
+				tempstr = tempstr.substring(a + 1, b);
+				
+				webElement = driver.findElement(
+						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
+								+ ") > td:nth-child(1)"));
+				String imageIndex = webElement.getText();
+				// 새창에서 열기
+				js.executeScript(
+						"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="
+								+ tempstr + "&title=" + imageIndex + "');");
+				
+//			driver.switchTo().window(mainWindow);
+				// 10개씩 처리하기
+//			if ((i + 1) % 10 == 0) {
+				if (driver.getWindowHandles().size() - 1 % 10 == 0) {
+					for (String w : driver.getWindowHandles()) {
+						if (w.equals(mainWindow))
+							continue;
+						imageSave(mainWindow, w);
+					}
+					driver.switchTo().window(mainWindow);
+					sleep(100);
 				}
+			}
+			if (Nth%10==0) {
+				js.executeScript(String.format("linkPage(%d)", page += 1));
 				continue;
 			}
 
-			// 클릭 이벤트 관련 a태그
-			webElement = driver.findElement(
-					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
-							+ ") > td:nth-child(2) > a"));
-			// 페이지 이동을 위해 parameter 추출
-			String tempstr = webElement.getAttribute("href").split(":")[1];
-			int a = tempstr.indexOf('\'');
-			int b = tempstr.indexOf('\'', a + 1);
-			tempstr = tempstr.substring(a + 1, b);
-			webElement = driver.findElement(
-					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + temp
-							+ ") > td:nth-child(1)"));
-
-			String imageIndex = webElement.getText();
-			// 새창에서 열기
-			js.executeScript(
-					"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="
-							+ tempstr + "&title=" + imageIndex + "');");
-
-//			driver.switchTo().window(mainWindow);
-			// 10개씩 처리하기
-//			if ((i + 1) % 10 == 0) {
-			if (driver.getWindowHandles().size() - 1 % 10 == 0) {
-				for (String w : driver.getWindowHandles()) {
-					if (w.equals(mainWindow))
-						continue;
-					imageSave(mainWindow, w);
-				}
-				driver.switchTo().window(mainWindow);
-				sleep(100);
-			}
 		}
 		for (String w : driver.getWindowHandles()) {
 			if (w.equals(mainWindow))
@@ -311,7 +313,7 @@ public class Capture {
 			js.executeScript("window.scrollTo(0," + 400 * (k + 1) + ")");
 			sleep(10);
 		}
-		mergeImage(scrFile, driver.getCurrentUrl().split("title")[1].substring(1) + driver
+		mergeImage(scrFile, driver.getCurrentUrl().split("title")[1].substring(1) + "."+ driver
 				.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[1]/table/tbody/tr[4]/td[1]")).getText(),
 				height);
 		driver.close();
@@ -342,7 +344,7 @@ public class Capture {
 				tempHeight += is[i].getHeight();
 			}
 			Arrays.stream(images).forEach(t -> t.delete());
-			ImageIO.write(mergedImage, "png", new File(saveDir + fileName + ".png"));
+			ImageIO.write(mergedImage, "png", new File(saveDir+ fileName.replaceAll("[0-9]", "") + ".png"));
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
