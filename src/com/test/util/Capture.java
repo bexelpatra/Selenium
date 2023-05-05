@@ -384,7 +384,7 @@ public class Capture {
 	}
 
 	@Deprecated
-	private void fileConnet(File[] origin, File to) throws Exception {
+	public void fileConnet(File[] origin, File to) throws Exception {
 		FileInputStream[] input = new FileInputStream[origin.length];
 
 		FileOutputStream oss = new FileOutputStream(to);
