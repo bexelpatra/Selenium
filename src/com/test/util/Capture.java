@@ -213,7 +213,10 @@ public class Capture {
 				String tempstr = webElement.getAttribute("href").split(":")[1];
 				int a = tempstr.indexOf('\'');
 				int b = tempstr.indexOf('\'', a + 1);
-				tempstr = tempstr.substring(a + 1, b);
+				String gvnfSn= tempstr.substring(a + 1, b);
+				int c = tempstr.indexOf('\'', b + 1);
+				int d = tempstr.indexOf('\'', c + 1);
+				String gvnfSrcSe= tempstr.substring(c + 1, d);
 				
 				webElement = driver.findElement(
 						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
@@ -221,8 +224,8 @@ public class Capture {
 				String imageIndex = webElement.getText();
 				// 새창에서 열기
 				js.executeScript(
-						"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe=C0007000400000000&gvnfSn="
-								+ tempstr + "&title=" + imageIndex + "');");
+						"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe="+gvnfSrcSe+"&gvnfSn="
+								+ gvnfSn + "&title=" + imageIndex + "');");
 				
 //			driver.switchTo().window(mainWindow);
 				// 10개씩 처리하기
