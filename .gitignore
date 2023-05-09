@@ -5,3 +5,5 @@ src/*.properties
 bin/*.properties
 *.png
 *.properties
+src/*.class
+*.class
