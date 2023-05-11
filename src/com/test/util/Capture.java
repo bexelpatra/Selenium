@@ -347,7 +347,7 @@ public class Capture {
 				tempHeight += is[i].getHeight();
 			}
 			Arrays.stream(images).forEach(t -> t.delete());
-			ImageIO.write(mergedImage, "png", new File(saveDir+ fileName.replaceAll("[0-9]", "") + ".png"));
+			ImageIO.write(mergedImage, "png", new File(saveDir+ fileName + ".png"));
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
