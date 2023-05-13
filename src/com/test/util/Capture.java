@@ -94,7 +94,7 @@ public class Capture {
 
 	private void loadProperties() throws Exception {
 		Properties properties = new Properties();
-		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo.properties"))));
+		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo2.properties"))));
 
 		if (propertiesMap == null) {
 			propertiesMap = new HashMap<>();
@@ -175,16 +175,23 @@ public class Capture {
 		// 리스트 돌면서 캡쳐 준비
 		driver.get("http://onetouch.police.go.kr/mypage/myGiveInfoList.do");
 		sleep(200);
+		
+		// 처리일을 입력받아서 진행 
+		js.executeScript(String.format("$(\"#mFromDate\").val('%s')",propertiesMap.get("from")));
+		js.executeScript(String.format("$(\"#mToDate\").val('%s')",propertiesMap.get("to")));
+		js.executeScript("$(\"#procDt\").prop('checked',true)");
+		js.executeScript("fnSearch()");
+		sleep(200);
+		waiter.until(ExpectedConditions.presenceOfNestedElementsLocatedBy(By.xpath("//*[@id=\"container\"]/div[2]"), By.xpath("//*[@id=\"container\"]/div[2]/div[3]")));
 		String mainWindow = driver.getWindowHandle();
-
-		// 팝업 치우기
+		// 팝업 치우기s
 		for (String win : driver.getWindowHandles()) {
 			if (!mainWindow.equals(win)) {
 				driver.switchTo().window(win).close();
 			}
 		}
 		driver.switchTo().window(mainWindow);
-
+		
 		// 검색되는 개수 체크
 		int count = Integer
 				.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
@@ -203,8 +210,14 @@ public class Capture {
 							+ ") > td:nth-child(5)"));
 			String chargeResult = webElement.getText();
 
+			// 이륜차 신고 이외의 건은 거른다.
+			webElement = driver.findElement(
+					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
+							+ ") > td:nth-child(3)"));
+			String checkBiCycle =webElement.getText();
+
 			// 답변 완료 아니면 스킵
-			if (chargeResult != null && chargeResult.startsWith("답변완료")) {				
+			if (chargeResult != null && chargeResult.startsWith("답변완료") && checkBiCycle.contains("이륜차")) {				
 				// 클릭 이벤트 관련 a태그
 				webElement = driver.findElement(
 						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
