@@ -7,3 +7,4 @@ bin/*.properties
 *.properties
 src/*.class
 *.class
+*.zip

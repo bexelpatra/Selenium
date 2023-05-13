@@ -57,7 +57,7 @@ public class Capture {
 
 		super();
 
-		// os ¿¡ µû¸¥ Å©·Òµå¶óÀÌ¹ö ¼±ÅÃ
+		// os ì— ë”°ë¥¸ í¬ë¡¬ë“œë¼ì´ë²„ ì„ íƒ
 		String osName = System.getProperty("os.name").toLowerCase();
 //		if (osName != null && osName.contains("windows")) {
 //			WEB_DRIVER_PATH += ".exe";
@@ -71,9 +71,9 @@ public class Capture {
 		this.base_url = base_url;
 		ChromeOptions options = new ChromeOptions();
 
-		// µµÄ¿¸¦ ÀÌ¿ëÇØ ¸®´ª½º È¯°æ¿¡¼­ ½ÇÇàÀ» ½ÃµµÇÏ´ø ºÎºĞ
-		//-> º¸·ù, È­¸é¾øÀÌ ½ÇÇà½Ã Å©±â°¡ 800 x 400À¸·Î ³ª¿Â´Ù. ÀÌ°Å Ä¸ÃÄÇÏ·Á¸é »õ·Î merge ¿Ü¿¡µµ °¡·Î merge¸¦ ÇØ¾ßÇÏ±â ¶§¹®....
-		// Å©·ÒÀ¥¾ÛÀ¸·Î ÀÛ¾÷ ÁøÇà ¿¹Á¤
+		// ë„ì»¤ë¥¼ ì´ìš©í•´ ë¦¬ëˆ…ìŠ¤ í™˜ê²½ì—ì„œ ì‹¤í–‰ì„ ì‹œë„í•˜ë˜ ë¶€ë¶„
+		//-> ë³´ë¥˜, í™”ë©´ì—†ì´ ì‹¤í–‰ì‹œ í¬ê¸°ê°€ 800 x 400ìœ¼ë¡œ ë‚˜ì˜¨ë‹¤. ì´ê±° ìº¡ì³í•˜ë ¤ë©´ ìƒˆë¡œ merge ì™¸ì—ë„ ê°€ë¡œ mergeë¥¼ í•´ì•¼í•˜ê¸° ë•Œë¬¸....
+		// í¬ë¡¬ì›¹ì•±ìœ¼ë¡œ ì‘ì—… ì§„í–‰ ì˜ˆì •
 //		options.addArguments("--headless");	
 //		options.addArguments("--no-sandbox");
 //		options.addArguments("--disable-gpu");
@@ -130,7 +130,7 @@ public class Capture {
 		Window window = driver.manage().window();
 		System.out.println(window.getSize().getWidth() + " : " + window.getSize().getHeight());
 		try {
-			// È¤½Ã alert°¡ ¾È ¶ß´Â °æ¿ìµµ ÀÖÀ¸´Ï±î
+			// í˜¹ì‹œ alertê°€ ì•ˆ ëœ¨ëŠ” ê²½ìš°ë„ ìˆìœ¼ë‹ˆê¹Œ
 			waiter.until(ExpectedConditions.alertIsPresent());
 			driver.switchTo().alert().dismiss();
 		} catch (Exception e) {
@@ -138,22 +138,22 @@ public class Capture {
 			e.printStackTrace();
 		}
 
-		// °¡»óÅ°ÆĞµå Ã¼Å©ÇÏ±â 
+		// ê°€ìƒí‚¤íŒ¨ë“œ ì²´í¬í•˜ê¸° 
 		js.executeScript("document.getElementById('checkpwd').setAttribute('checked',true)");
 		sleep(500);
 		Map<String, String> keyMap = new HashMap<>();
-		// ÀúÀåµÈ Å°ÆĞµå ¸ñ·ÏÀÌ ÀÖÀ¸¸é ºÒ·¯¿Â´Ù.
+		// ì €ì¥ëœ í‚¤íŒ¨ë“œ ëª©ë¡ì´ ìˆìœ¼ë©´ ë¶ˆëŸ¬ì˜¨ë‹¤.
 		try {
 			loadKeypad(keyMap);
 		} catch (Exception e) {
-			// ÀúÀåµÈ Å°º¸µå°¡ ¾øÀ¸¸é Å°º¸µå¸¦ ÀĞ¾î¿Â´Ù.
+			// ì €ì¥ëœ í‚¤ë³´ë“œê°€ ì—†ìœ¼ë©´ í‚¤ë³´ë“œë¥¼ ì½ì–´ì˜¨ë‹¤.
 			keypadExtract(keyMap);
 		}
 
-		// Å°ÆĞµå ÀúÀåÇÏ±â
+		// í‚¤íŒ¨ë“œ ì €ì¥í•˜ê¸°
 		saveKeypad(keyMap);
 
-		// ·Î±×ÀÎ ºÎºĞ
+		// ë¡œê·¸ì¸ ë¶€ë¶„
 		String pw = propertiesMap.get("password");
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < pw.length(); i++) {
@@ -170,21 +170,22 @@ public class Capture {
 		driver.findElement(By.xpath("//*[@id=\"btn_login\"]")).click();
 
 		sleep(500);
-		// ·Î±×ÀÎ ¿Ï·á
+		// ë¡œê·¸ì¸ ì™„ë£Œ
 
-		// ¸®½ºÆ® µ¹¸é¼­ Ä¸ÃÄ ÁØºñ
+		// ë¦¬ìŠ¤íŠ¸ ëŒë©´ì„œ ìº¡ì³ ì¤€ë¹„
 		driver.get("http://onetouch.police.go.kr/mypage/myGiveInfoList.do");
 		sleep(200);
 		
-		// Ã³¸®ÀÏÀ» ÀÔ·Â¹Ş¾Æ¼­ ÁøÇà 
-		js.executeScript(String.format("$(\"#mFromDate\").val('%s')",propertiesMap.get("from")));
-		js.executeScript(String.format("$(\"#mToDate\").val('%s')",propertiesMap.get("to")));
-		js.executeScript("$(\"#procDt\").prop('checked',true)");
+		// ì²˜ë¦¬ì¼ì„ ì…ë ¥ë°›ì•„ì„œ ì§„í–‰ 
+		js.executeScript(String.format("$(\"#mFromDate\").val('%s')",propertiesMap.get("from"))); // ê¸°ê°„ê²€ìƒ‰ ì‹œì‘ì¼
+		js.executeScript(String.format("$(\"#mToDate\").val('%s')",propertiesMap.get("to"))); // ê¸°ê°„ê²€ìƒ‰ ì¢…ë£Œì¼
+		js.executeScript("$(\"#procDt\").prop('checked',true)"); // ì²˜ë¦¬ì¼ ê¸°ì¤€ìœ¼ë¡œ ì„ íƒ
+		js.executeScript("$(\"#mGvnfProcessSttus > option:nth-child(4)\").prop('selected',true)"); // ë‹µë³€ ì™„ë£Œë§Œ ê²€ìƒ‰
 		js.executeScript("fnSearch()");
 		sleep(200);
 		waiter.until(ExpectedConditions.presenceOfNestedElementsLocatedBy(By.xpath("//*[@id=\"container\"]/div[2]"), By.xpath("//*[@id=\"container\"]/div[2]/div[3]")));
 		String mainWindow = driver.getWindowHandle();
-		// ÆË¾÷ Ä¡¿ì±âs
+		// íŒì—… ì¹˜ìš°ê¸°s
 		for (String win : driver.getWindowHandles()) {
 			if (!mainWindow.equals(win)) {
 				driver.switchTo().window(win).close();
@@ -192,7 +193,7 @@ public class Capture {
 		}
 		driver.switchTo().window(mainWindow);
 		
-		// °Ë»öµÇ´Â °³¼ö Ã¼Å©
+		// ê²€ìƒ‰ë˜ëŠ” ê°œìˆ˜ ì²´í¬
 		int count = Integer
 				.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
 		int page = 1;
@@ -203,26 +204,26 @@ public class Capture {
 //		}
 		System.out.println("total count : " + count);
 		for (int i = 0; i < count; i++) {
-			int Nth = (i) % 10 + 1; // È­¸é ¼Ó ¼ø¼­
-			// Ã³¸®»óÅÂ
+			int Nth = (i) % 10 + 1; // í™”ë©´ ì† ìˆœì„œ
+			// ì²˜ë¦¬ìƒíƒœ
 			webElement = driver.findElement(
 					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
 							+ ") > td:nth-child(5)"));
 			String chargeResult = webElement.getText();
 
-			// ÀÌ·ûÂ÷ ½Å°í ÀÌ¿ÜÀÇ °ÇÀº °Å¸¥´Ù.
+			// ì´ë¥œì°¨ ì‹ ê³  ì´ì™¸ì˜ ê±´ì€ ê±°ë¥¸ë‹¤.
 			webElement = driver.findElement(
 					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
 							+ ") > td:nth-child(3)"));
 			String checkBiCycle =webElement.getText();
 
-			// ´äº¯ ¿Ï·á ¾Æ´Ï¸é ½ºÅµ
-			if (chargeResult != null && chargeResult.startsWith("´äº¯¿Ï·á") && checkBiCycle.contains("ÀÌ·ûÂ÷")) {				
-				// Å¬¸¯ ÀÌº¥Æ® °ü·Ã aÅÂ±×
+			// ë‹µë³€ ì™„ë£Œ ì•„ë‹ˆë©´ ìŠ¤í‚µ
+			if (chargeResult != null && chargeResult.startsWith("ë‹µë³€ì™„ë£Œ") && checkBiCycle.contains("ì´ë¥œì°¨")) {				
+				// í´ë¦­ ì´ë²¤íŠ¸ ê´€ë ¨ aíƒœê·¸
 				webElement = driver.findElement(
 						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
 								+ ") > td:nth-child(2) > a"));
-				// ÆäÀÌÁö ÀÌµ¿À» À§ÇØ parameter ÃßÃâ
+				// í˜ì´ì§€ ì´ë™ì„ ìœ„í•´ parameter ì¶”ì¶œ
 				String tempstr = webElement.getAttribute("href").split(":")[1];
 				int a = tempstr.indexOf('\'');
 				int b = tempstr.indexOf('\'', a + 1);
@@ -235,15 +236,15 @@ public class Capture {
 						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
 								+ ") > td:nth-child(1)"));
 				String imageIndex = webElement.getText();
-				// »õÃ¢¿¡¼­ ¿­±â
+				// ìƒˆì°½ì—ì„œ ì—´ê¸°
 				js.executeScript(
 						"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe="+gvnfSrcSe+"&gvnfSn="
 								+ gvnfSn + "&title=" + imageIndex + "');");
 				
 //			driver.switchTo().window(mainWindow);
-				// 10°³¾¿ Ã³¸®ÇÏ±â
+				// 10ê°œì”© ì²˜ë¦¬í•˜ê¸°
 //			if ((i + 1) % 10 == 0) {
-				if (driver.getWindowHandles().size() - 1 % 10 == 0) {
+				if ((driver.getWindowHandles().size() - 1) % 10 == 0) {
 					for (String w : driver.getWindowHandles()) {
 						if (w.equals(mainWindow))
 							continue;
@@ -310,7 +311,7 @@ public class Capture {
 			FileOutputStream os = new FileOutputStream(new File("src/keypad.txt"));
 			os.write(keypadjson.getBytes());
 			os.close();
-			System.out.println("Å°ÆĞµå ÀúÀå ¿Ï·á");
+			System.out.println("í‚¤íŒ¨ë“œ ì €ì¥ ì™„ë£Œ");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -348,7 +349,7 @@ public class Capture {
 				height += is[i].getHeight();
 				minus = is[i].getHeight();
 			}
-			// ÆÄÀÏ ³ôÀÌ Á¶Á¤
+			// íŒŒì¼ ë†’ì´ ì¡°ì •
 			height -= ((minus / 2 - 30) * (is.length - 1));
 
 			BufferedImage mergedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -372,10 +373,10 @@ public class Capture {
 
 		FileOutputStream oss = new FileOutputStream(to);
 
-		// 3. ÇÑ¹ø¿¡ readÇÏ°í, writeÇÒ »çÀÌÁî ÁöÁ¤
+		// 3. í•œë²ˆì— readí•˜ê³ , writeí•  ì‚¬ì´ì¦ˆ ì§€ì •
 		byte[] buf = new byte[1024];
 
-		// 4. buf »çÀÌÁî¸¸Å­ input¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀĞ¾î¼­, output¿¡ ¾´´Ù.
+		// 4. buf ì‚¬ì´ì¦ˆë§Œí¼ inputì—ì„œ ë°ì´í„°ë¥¼ ì½ì–´ì„œ, outputì— ì“´ë‹¤.
 		int readData;
 
 		while ((readData = input.read(buf)) > 0) {
@@ -408,10 +409,10 @@ public class Capture {
 			System.out.println(input[i].getChannel().size() + ", " + origin[i].length());
 
 		}
-		// 3. ÇÑ¹ø¿¡ readÇÏ°í, writeÇÒ »çÀÌÁî ÁöÁ¤
+		// 3. í•œë²ˆì— readí•˜ê³ , writeí•  ì‚¬ì´ì¦ˆ ì§€ì •
 		byte[] buf = new byte[1024];
 
-		// 4. buf »çÀÌÁî¸¸Å­ input¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀĞ¾î¼­, output¿¡ ¾´´Ù.
+		// 4. buf ì‚¬ì´ì¦ˆë§Œí¼ inputì—ì„œ ë°ì´í„°ë¥¼ ì½ì–´ì„œ, outputì— ì“´ë‹¤.
 		int readData = 0;
 		int bytes = 0;
 		for (int i = 0; i < input.length; i++) {
@@ -431,8 +432,8 @@ public class Capture {
 	}
 
 	/**
-	 * ÆÄÀÏ µ¤¾î¾²°í µ¤Àº ÆÄÀÏ Áö¿ì±â ÆÄÀÏ¸¶´Ù ½ÃÀÛ°ú ³¡ ºÎºĞÀÌ ÀÖ´Â µí ÇÏ´Ù. Ã¹¹øÂ° ÀÔ·ÂµÈ ÆÄÀÏ¸¸ ÀĞ¾î³½´Ù. Ã¹¹øÂ° ÆÄÀÏÀÇ Å©±â¸¦ ³Ñ±â¸é
-	 * ´ÙÀ½ ÆÄÀÏÀÌ µå·¯³­´Ù.
+	 * íŒŒì¼ ë®ì–´ì“°ê³  ë®ì€ íŒŒì¼ ì§€ìš°ê¸° íŒŒì¼ë§ˆë‹¤ ì‹œì‘ê³¼ ë ë¶€ë¶„ì´ ìˆëŠ” ë“¯ í•˜ë‹¤. ì²«ë²ˆì§¸ ì…ë ¥ëœ íŒŒì¼ë§Œ ì½ì–´ë‚¸ë‹¤. ì²«ë²ˆì§¸ íŒŒì¼ì˜ í¬ê¸°ë¥¼ ë„˜ê¸°ë©´
+	 * ë‹¤ìŒ íŒŒì¼ì´ ë“œëŸ¬ë‚œë‹¤.
 	 * 
 	 * @param origin
 	 * @param to
@@ -448,7 +449,7 @@ public class Capture {
 			System.out.println("input length " + input.getChannel().size());
 			byte[] buf = new byte[1024];
 
-			// 4. buf »çÀÌÁî¸¸Å­ input¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀĞ¾î¼­, output¿¡ ¾´´Ù.
+			// 4. buf ì‚¬ì´ì¦ˆë§Œí¼ inputì—ì„œ ë°ì´í„°ë¥¼ ì½ì–´ì„œ, outputì— ì“´ë‹¤.
 			int readData;
 			for (int j = 0; j < remove; j++) {
 				input.read();
