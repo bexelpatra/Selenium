@@ -94,7 +94,7 @@ public class Capture {
 
 	private void loadProperties() throws Exception {
 		Properties properties = new Properties();
-		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo2.properties"))));
+		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo.properties"))));
 
 		if (propertiesMap == null) {
 			propertiesMap = new HashMap<>();
@@ -109,7 +109,6 @@ public class Capture {
 					new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
 		}
 		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
-
 	}
 
 	private String convertEncoding(String iso) {
@@ -194,8 +193,7 @@ public class Capture {
 		driver.switchTo().window(mainWindow);
 		
 		// 검색되는 개수 체크
-		int count = Integer
-				.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
+		int count = Integer.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
 		int page = 1;
 
 		// if (count < 20) {
@@ -203,26 +201,21 @@ public class Capture {
 //			return;
 //		}
 		System.out.println("total count : " + count);
+		ImageMerge im = new ImageMerge(driver);
 		for (int i = 0; i < count; i++) {
 			int Nth = (i) % 10 + 1; // 화면 속 순서
 			// 처리상태
-			webElement = driver.findElement(
-					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
-							+ ") > td:nth-child(5)"));
+			webElement = driver.findElement(By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" +Nth+ ") > td:nth-child(5)"));
 			String chargeResult = webElement.getText();
 
 			// 이륜차 신고 이외의 건은 거른다.
-			webElement = driver.findElement(
-					By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
-							+ ") > td:nth-child(3)"));
+			webElement = driver.findElement(By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth + ") > td:nth-child(3)"));
 			String checkBiCycle =webElement.getText();
 
 			// 답변 완료 아니면 스킵
 			if (chargeResult != null && chargeResult.startsWith("답변완료") && checkBiCycle.contains("이륜차")) {				
 				// 클릭 이벤트 관련 a태그
-				webElement = driver.findElement(
-						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
-								+ ") > td:nth-child(2) > a"));
+				webElement = driver.findElement(By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth + ") > td:nth-child(2) > a"));
 				// 페이지 이동을 위해 parameter 추출
 				String tempstr = webElement.getAttribute("href").split(":")[1];
 				int a = tempstr.indexOf('\'');
@@ -232,27 +225,25 @@ public class Capture {
 				int d = tempstr.indexOf('\'', c + 1);
 				String gvnfSrcSe= tempstr.substring(c + 1, d);
 				
-				webElement = driver.findElement(
-						By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth
-								+ ") > td:nth-child(1)"));
+				webElement = driver.findElement(By.cssSelector("#container > div.content > div.table_list > table > tbody > tr:nth-child(" + Nth + ") > td:nth-child(1)"));
 				String imageIndex = webElement.getText();
 				// 새창에서 열기
-				js.executeScript(
-						"window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe="+gvnfSrcSe+"&gvnfSn="
-								+ gvnfSn + "&title=" + imageIndex + "');");
+				js.executeScript("window.open('http://onetouch.police.go.kr/mypage/myGiveInfoView.do?gvnfSrcSe="+gvnfSrcSe+"&gvnfSn="+ gvnfSn + "&title=" + imageIndex + "');");
 				
 //			driver.switchTo().window(mainWindow);
 				// 10개씩 처리하기
 //			if ((i + 1) % 10 == 0) {
-				if ((driver.getWindowHandles().size() - 1) % 10 == 0) {
+				if ((driver.getWindowHandles().size() - 1) % 10 == 1) {
 					for (String w : driver.getWindowHandles()) {
 						if (w.equals(mainWindow))
 							continue;
-						imageSave(mainWindow, w);
+//						imageSave(mainWindow, w);  
+						im.mergeImage(im.imageSave(mainWindow, w), im.getFileName(), 0);
 					}
 					driver.switchTo().window(mainWindow);
 					sleep(100);
 				}
+				return;
 			}
 			if (Nth%10==0) {
 				js.executeScript(String.format("linkPage(%d)", page += 1));
@@ -270,6 +261,21 @@ public class Capture {
 
 	}
 
+	public void imageSaveTest() {
+		driver.get("chrome://version/");
+		try {
+			Thread.sleep(1000);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		String main = driver.getWindowHandle();
+		js.executeScript("window.open('https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC:%EB%8C%80%EB%AC%B8');");
+		for (String window: driver.getWindowHandles()) {
+			if(window.equals(main)) continue;
+			imageSave(main, window);			
+		}
+	}
 	private void loadKeypad(Map<String, String> keyMap) throws FileNotFoundException, IOException, ParseException {
 		BufferedReader reader = new BufferedReader(new FileReader(new File("src/keypad.txt")));
 		String jsonKeypad = reader.readLine();
@@ -321,22 +327,29 @@ public class Capture {
 	private void imageSave(String mainWindow, String windowName) {
 		driver.switchTo().window(windowName);
 		webElement = driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]"));
-		int height = webElement.getSize().getHeight();
+		int windowHeight = driver.manage().window().getSize().height;
+		int contentHeight = webElement.getSize().getHeight();
 
-		int n = (int) height / 400 + 1;
+		int n = (int) contentHeight / (windowHeight / 2)+ 1;
+		System.out.println(windowHeight);
 		File[] scrFile = new File[n];
 		for (int k = 0; k < n; k++) {
 			scrFile[k] = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-			js.executeScript("window.scrollTo(0," + 400 * (k + 1) + ")");
+			js.executeScript("window.scrollTo(0," + (windowHeight / 2) * (k + 1) + ")");
 			sleep(10);
 		}
-		mergeImage(scrFile, driver.getCurrentUrl().split("title")[1].substring(1) + "."+ driver
-				.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[1]/table/tbody/tr[4]/td[1]")).getText(),
-				height);
+		mergeImage(
+				scrFile,
+//				driver.getCurrentUrl().split("title")[1].substring(1) + "."+ driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[1]/table/tbody/tr[4]/td[1]")).getText(), // 임시부여한 번호
+//				driver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(4)")).getText().replaceAll(":", "-") // 위반일시
+				 "."
+//				 driver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(4) > td:nth-child(2)")).getText(), // 위반차량번호
+				+"myTest",
+				windowHeight);
 		driver.close();
 	}
 
-	private void mergeImage(File[] images, String fileName, int h) {
+	private void mergeImage(File[] images, String fileName, int windowHeight) {
 		try {
 			BufferedImage[] is = new BufferedImage[images.length];
 
@@ -350,18 +363,20 @@ public class Capture {
 				minus = is[i].getHeight();
 			}
 			// 파일 높이 조정
-			height -= ((minus / 2 - 30) * (is.length - 1));
+			height -= ((minus / 2 - windowHeight/14) * (is.length - 1));
 
 			BufferedImage mergedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics = (Graphics2D) mergedImage.getGraphics();
 			graphics.setBackground(Color.WHITE);
 			int tempHeight = 0;
+			System.out.println(windowHeight);
 			for (int i = 0; i < is.length; i++) {
-				graphics.drawImage(is[i], 0, tempHeight - (i * (400 - 20)), null);
+				graphics.drawImage(is[i], 0, tempHeight - (i * ((windowHeight/2) - (windowHeight/12))), null);
 				tempHeight += is[i].getHeight();
 			}
 			Arrays.stream(images).forEach(t -> t.delete());
 			ImageIO.write(mergedImage, "png", new File(saveDir+ fileName + ".png"));
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();

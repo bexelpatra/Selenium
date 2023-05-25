@@ -13,6 +13,7 @@ public class AutoSingo {
 		
 		Capture c = new Capture("https://onetouch.police.go.kr/login.do",false);
 		c.doJob();
+//		c.imageSaveTest();
 		
 		System.out.println();
 		System.out.println("================");

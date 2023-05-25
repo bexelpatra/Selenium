@@ -1,11 +1,10 @@
 #FROM ubuntu:18.04
-FROM adoptopenjdk/openjdk11
+FROM adoptopenjdk/openjdk8
 RUN apt-get update
 RUN apt-get install wget
-RUN wget https://dl.google.com/linux/linux_signing_key.pub
-RUN apt-get install gnupg
-RUN Y
-RUN apt-key add linux_signing_key.pub
+#RUN apt-get install -y gnupg
+#RUN wget https://dl.google.com/linux/linux_signing_key.pub
+#RUN apt-key add linux_signing_key.pub
 
 RUN apt-get update
 RUN apt-get install google-chrome-stable
