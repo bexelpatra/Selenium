@@ -202,6 +202,8 @@ public class Capture {
 //		}
 		System.out.println("total count : " + count);
 		ImageMerge im = new ImageMerge(driver);
+		File[] images = null;
+		String fileName = "";
 		for (int i = 0; i < count; i++) {
 			int Nth = (i) % 10 + 1; // 화면 속 순서
 			// 처리상태
@@ -233,17 +235,19 @@ public class Capture {
 //			driver.switchTo().window(mainWindow);
 				// 10개씩 처리하기
 //			if ((i + 1) % 10 == 0) {
-				if ((driver.getWindowHandles().size() - 1) % 10 == 1) {
+				if ((driver.getWindowHandles().size() - 1) % 10 == 0) {
 					for (String w : driver.getWindowHandles()) {
 						if (w.equals(mainWindow))
 							continue;
-//						imageSave(mainWindow, w);  
-						im.mergeImage(im.imageSave(mainWindow, w), im.getFileName(), 0);
+//						imageSave(mainWindow, w); 
+						images = im.imageSave(mainWindow, w);
+						fileName = im.getFileName();
+						im.mergeImage(images,fileName , 0);
 					}
 					driver.switchTo().window(mainWindow);
 					sleep(100);
 				}
-				return;
+//				return;
 			}
 			if (Nth%10==0) {
 				js.executeScript(String.format("linkPage(%d)", page += 1));
@@ -324,6 +328,7 @@ public class Capture {
 		}
 	}
 
+	@Deprecated
 	private void imageSave(String mainWindow, String windowName) {
 		driver.switchTo().window(windowName);
 		webElement = driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]"));
@@ -348,7 +353,7 @@ public class Capture {
 				windowHeight);
 		driver.close();
 	}
-
+	@Deprecated
 	private void mergeImage(File[] images, String fileName, int windowHeight) {
 		try {
 			BufferedImage[] is = new BufferedImage[images.length];
@@ -382,7 +387,7 @@ public class Capture {
 			e.printStackTrace();
 		}
 	}
-
+	@Deprecated
 	private void copy(File origin, File to) throws Exception {
 		FileInputStream input = new FileInputStream(origin);
 

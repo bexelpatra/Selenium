@@ -9,17 +9,14 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 public class ImageMergeTest {
-	static String dir = "C:/Temp/merge/2/";
+	static String dir = "D:/class/personal/Selenium/src/images/test/temp";
 		public static void main(String[] args) throws Exception{
 		File[] images = new File(dir).listFiles(t->{return t.getName().indexOf("test")<0 && t.isFile();});
 		Arrays.stream(images).forEach(t -> System.out.println(t.getName()) );
 		int edit =0;
 		int totalHeight=840;
 		int start = 30;
-
-		for (int i = start; i < start + 20; i++) {
-			mergeImage(images, "test", totalHeight,i);			
-		}
+		mergeImage(images, "test", totalHeight,0);
 	}
 	private static void mergeImage(File[] images, String fileName, int windowHeight,int edit) {
 		try {

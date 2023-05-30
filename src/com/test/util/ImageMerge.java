@@ -44,26 +44,33 @@ public class ImageMerge {
 		// 외부에서 사용할수있도록 설정
 		setFileName();
 		
-		int i =1;
-		while(contentHeight - (windowHeight + (scrollDown)*(i-1) ) >= 0){
-			i+=1;
-		}
+//		int i =1;
+//		while(contentHeight - (windowHeight + (scrollDown)*(i-1) ) >= 0){
+//			i+=1;
+//		}
 		System.out.printf("window height : %d , content height : %d \n",windowHeight, contentHeight);
-		File[] scrFile = new File[i];
+		File[] scrFile = new File[contentHeight/(windowHeight/2)];
 		Object ob = null;
+		int totalCapturedImg = 0;
 		int imgHeight = 0;
-		for (int k = 0; k < i; k++) {
+		int k=0;
+		while (totalCapturedImg <= contentHeight+100) {
 //			scrFile[k] = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 			scrFile[k] = ((TakesScreenshot) webElement).getScreenshotAs(OutputType.FILE);
-			js.executeScript("window.scrollTo(0," + (getImageHeight(scrFile[k]))* (k + 1) + ")");
+			imgHeight = getImageHeight(scrFile[k]);
+			js.executeScript("window.scrollTo(0," + (imgHeight)* (k + 1) + ")");
 //			js.executeScript("window.scrollTo(0," + (scrollDown)* (k + 1) + ")");
 //			js.executeScript("window.scrollTo(0," + windowHeight * (k + 1) + ")");
+			
+			k+=1;
+			totalCapturedImg +=imgHeight;
 			ob = js.executeScript("return window.scrollY");
 			System.out.println(ob);
 			sleep(10);
 		}
+		System.out.printf("total captured : %d \n",totalCapturedImg);
 		System.out.println("end");
-		Arrays.stream(scrFile).forEach(t ->{
+		Arrays.stream(scrFile).filter(t-> t!=null).forEach(t ->{
 			try {
 				copy(new FileInputStream(t), new FileOutputStream(new File(saveDir+"temp/"+t.getName())));
 			} catch (FileNotFoundException e) {
@@ -84,13 +91,15 @@ public class ImageMerge {
 		return result;
 	}
 	public void mergeImage(File[] images, String fileName, int contentHeight) {
+		int imagesCount = (int)Arrays.stream(images).filter(t -> t!=null).count();
 		try {
-			BufferedImage[] is = new BufferedImage[images.length];
+			BufferedImage[] is = new BufferedImage[imagesCount];
 
 			int width = 0;
 			int height = 0;
 			int minus = 0;
 			for (int i = 0; i < is.length; i++) {
+				if(images[i]==null) continue;
 				is[i] = ImageIO.read(images[i]);
 				width = Math.max(width, is[i].getWidth());
 				height += is[i].getHeight();
@@ -98,9 +107,9 @@ public class ImageMerge {
 			}
 			// 파일 높이 조정
 //			height -= ((minus / 2 - contentHeight/14) * (is.length - 1));
-			height -= (minus / 2) * (is.length - 1);
+//			height -= (minus / 2) * (is.length - 1);
 
-			BufferedImage mergedImage = new BufferedImage(width, height+200, BufferedImage.TYPE_INT_RGB);
+			BufferedImage mergedImage = new BufferedImage(width, elementHeight, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics = (Graphics2D) mergedImage.getGraphics();
 			graphics.setBackground(Color.WHITE);
 			int tempHeight = 0;
@@ -112,7 +121,7 @@ public class ImageMerge {
 				graphics.drawImage(is[i], 0, cutHeight, null);
 				tempHeight += is[i].getHeight();
 			}
-			Arrays.stream(images).forEach(t -> t.delete());
+			Arrays.stream(images).filter(t->t!=null).forEach(t -> t.delete());
 
 			File saveFile = new File(saveDir+ fileName + ".png");
 			int i =0 ;
