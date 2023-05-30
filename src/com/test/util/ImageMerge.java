@@ -3,10 +3,13 @@ package com.test.util;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
@@ -40,14 +43,8 @@ public class ImageMerge {
 		int windowHeight = driver.manage().window().getSize().height;
 		int contentHeight = webElement.getSize().getHeight();
 		this.elementHeight = contentHeight;
-		
-		// 외부에서 사용할수있도록 설정
 		setFileName();
-		
-//		int i =1;
-//		while(contentHeight - (windowHeight + (scrollDown)*(i-1) ) >= 0){
-//			i+=1;
-//		}
+
 		System.out.printf("window height : %d , content height : %d \n",windowHeight, contentHeight);
 		File[] scrFile = new File[contentHeight/(windowHeight/2)];
 		Object ob = null;
@@ -59,17 +56,13 @@ public class ImageMerge {
 			scrFile[k] = ((TakesScreenshot) webElement).getScreenshotAs(OutputType.FILE);
 			imgHeight = getImageHeight(scrFile[k]);
 			js.executeScript("window.scrollTo(0," + (imgHeight)* (k + 1) + ")");
-//			js.executeScript("window.scrollTo(0," + (scrollDown)* (k + 1) + ")");
-//			js.executeScript("window.scrollTo(0," + windowHeight * (k + 1) + ")");
 			
 			k+=1;
 			totalCapturedImg +=imgHeight;
 			ob = js.executeScript("return window.scrollY");
 			System.out.println(ob);
 			sleep(10);
-		}
-		System.out.printf("total captured : %d \n",totalCapturedImg);
-		System.out.println("end");
+		}		
 		Arrays.stream(scrFile).filter(t-> t!=null).forEach(t ->{
 			try {
 				copy(new FileInputStream(t), new FileOutputStream(new File(saveDir+"temp/"+t.getName())));
@@ -105,9 +98,6 @@ public class ImageMerge {
 				height += is[i].getHeight();
 				minus = is[i].getHeight();
 			}
-			// 파일 높이 조정
-//			height -= ((minus / 2 - contentHeight/14) * (is.length - 1));
-//			height -= (minus / 2) * (is.length - 1);
 
 			BufferedImage mergedImage = new BufferedImage(width, elementHeight, BufferedImage.TYPE_INT_RGB);
 			Graphics2D graphics = (Graphics2D) mergedImage.getGraphics();
