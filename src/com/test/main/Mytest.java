@@ -22,12 +22,28 @@ public class Mytest {
 		
 		System.out.println(paddingRight(b,"0", a.length()-b.length()));
 		
+		System.out.println((int)'p');
+		StringBuilder sb = new StringBuilder();
+		
+		
+		System.out.println(new String("\u0070"));
+		System.out.println("A".codePointAt(0));
+		System.out.println("a".codePointAt(0));
 	}
+	
 	public static String paddingRight(String text, String pad, int count) {
 		StringBuilder sb = new StringBuilder(text);
 		for (int i = 0; i < count; i++) {
 			sb.append(pad);
 		}
+		return sb.toString();
+	}
+	public static String paddingLeft(String text, String pad, int count) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < count-text.length(); i++) {
+			sb.append(pad);
+		}
+		sb.append(text);
 		return sb.toString();
 	}
 

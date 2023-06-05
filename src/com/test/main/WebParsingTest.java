@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -64,14 +65,29 @@ public class WebParsingTest {
 		driver = new ChromeDriver(options);
 		waiter = new WebDriverWait(driver, Duration.of(2000, ChronoUnit.MILLIS));
 		js = (JavascriptExecutor) driver;
-		base_url = "file:///C:/Temp/tel/messages.html";
+		base_url = "chrome://version/";
+		action = new Actions(driver);
 		driver.get(base_url);
 	}
 	public void doJob() {
 		// webElement를 이용해서 진행한다. webparsing으로 접근하지만 속도가 상당히 느리다
 //		byWebElement();
 		// 문자열로 다룬다. 속도가 훨씬 빠르다.
-		byInnerText();
+//		byInnerText();
+		driver.findElement(By.cssSelector("body")).click();
+		
+		action
+		.keyDown(Keys.F12)
+		.build().perform();
+		
+		action = new Actions(driver);
+		action
+		.keyDown(Keys.CONTROL)
+		.keyDown(Keys.LEFT_SHIFT)
+//		.keyDown(Keys.get))
+		.build().perform();
+		
+		
 	}
 	private void byInnerText() {
 		String totalText = driver.findElement(By.className("history")).getText();
