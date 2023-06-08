@@ -24,6 +24,8 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
+
 // 텔레그램 메세지 파싱
 // chat bot api도 있지만 추후 도전해보기로...
 public class WebParsingTest {
@@ -33,10 +35,6 @@ public class WebParsingTest {
 
 	private WebElement webElement;
 	private Actions action;
-	
-	// Properties
-	public static final String WEB_DRIVER_ID = "webdriver.chrome.driver";
-	public static String WEB_DRIVER_PATH = "src/chromedriver.exe";
 
 	// 크롤링 할 URL
 	private String base_url;
@@ -56,7 +54,7 @@ public class WebParsingTest {
 	}
 	public WebParsingTest() {
 		// TODO Auto-generated constructor stub
-		System.setProperty(WEB_DRIVER_ID, WEB_DRIVER_PATH);
+		WebDriverManager.chromedriver().setup();
 		ChromeOptions options = new ChromeOptions();
 		// 리눅스에서 실행하기 위해 필요한 옵션들...		
 		options.setCapability("ignoreProtectedModeSettings", true);
@@ -68,6 +66,8 @@ public class WebParsingTest {
 		base_url = "chrome://version/";
 		action = new Actions(driver);
 		driver.get(base_url);
+		System.out.println(driver.findElement(By.cssSelector("#copy-content")).getText());
+		
 	}
 	public void doJob() {
 		// webElement를 이용해서 진행한다. webparsing으로 접근하지만 속도가 상당히 느리다

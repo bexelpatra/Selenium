@@ -5,5 +5,10 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/sel"/>
 	<classpathentry kind="lib" path="D:/class/myLib/json-simple-1.1.1.jar"/>
 	<classpathentry kind="lib" path="D:/class/myLib/slf4j-api-1.7.36.jar"/>
+	<classpathentry kind="lib" path="D:/class/myLib/webdrivermanager-5.3.3.jar"/>
+	<classpathentry kind="lib" path="D:/class/myLib/webdrivermanager-5.3.3-sources.jar"/>
+	<classpathentry kind="lib" path="D:/class/myLib/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="D:/class/myLib/httpcore5-5.2.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/webdrivermanaver"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
