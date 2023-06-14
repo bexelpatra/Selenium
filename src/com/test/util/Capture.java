@@ -39,15 +39,14 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
+
 public class Capture {
 	private WebDriver driver;
 	private JavascriptExecutor js;
 	private WebDriverWait waiter;
 
 	private WebElement webElement;
-
-	private final String WEB_DRIVER_ID = "webdriver.chrome.driver";
-	private String WEB_DRIVER_PATH = "src/chromedriver.exe";
 	private String base_url;
 	private Map<String, String> propertiesMap;
 
@@ -56,7 +55,8 @@ public class Capture {
 	public Capture(String base_url, boolean show) throws Exception {
 
 		super();
-
+		WebDriverManager.chromedriver().setup();
+		System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
 		// os 에 따른 크롬드라이버 선택
 		String osName = System.getProperty("os.name").toLowerCase();
 //		if (osName != null && osName.contains("windows")) {
@@ -65,9 +65,6 @@ public class Capture {
 //			WEB_DRIVER_PATH += "Linux";
 //		}
 		System.out.printf("os name is : %s\n", osName);
-		System.out.println(WEB_DRIVER_PATH);
-
-		System.setProperty(WEB_DRIVER_ID, WEB_DRIVER_PATH);
 		this.base_url = base_url;
 		ChromeOptions options = new ChromeOptions();
 
@@ -85,13 +82,20 @@ public class Capture {
 		driver = new ChromeDriver(options);
 		waiter = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));
 		js = (JavascriptExecutor) driver;
-		loadProperties();
 		File savedir = new File(saveDir);
 		if (!savedir.exists()) {
 			savedir.mkdirs();
 		}
 	}
-
+	public Capture build(String properties) {
+		try {
+			loadProperties(properties);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return this;
+	}
 	private void loadProperties() throws Exception {
 		Properties properties = new Properties();
 		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo.properties"))));
@@ -110,7 +114,24 @@ public class Capture {
 		}
 		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
 	}
+	private void loadProperties(String prop) throws Exception {
+		Properties properties = new Properties();
+		properties.load(new BufferedInputStream(new FileInputStream(new File(prop))));
 
+		if (propertiesMap == null) {
+			propertiesMap = new HashMap<>();
+		}
+
+		System.out.println();
+		System.out.println("\t\tchecking your properties file\n");
+		for (Object ob : properties.keySet()) {
+			System.out.println("\t\t" + ob + " : \t "
+					+ new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
+			propertiesMap.put((String) ob,
+					new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
+		}
+		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
+	}
 	private String convertEncoding(String iso) {
 		String a = "";
 		try {
@@ -235,11 +256,10 @@ public class Capture {
 //			driver.switchTo().window(mainWindow);
 				// 10개씩 처리하기
 //			if ((i + 1) % 10 == 0) {
-				if ((driver.getWindowHandles().size() - 1) % 10 == 0) {
+				if ((driver.getWindowHandles().size() - 1) % 10 == 0) { // 탭의 개수가 10가 추가되면 저장 시작
 					for (String w : driver.getWindowHandles()) {
 						if (w.equals(mainWindow))
-							continue;
-//						imageSave(mainWindow, w); 
+							continue; 
 						images = im.imageSave(mainWindow, w);
 						fileName = im.getFileName();
 						im.mergeImage(images,fileName , 0);
@@ -256,9 +276,11 @@ public class Capture {
 
 		}
 		for (String w : driver.getWindowHandles()) {
-			if (w.equals(mainWindow))
-				continue;
-			imageSave(mainWindow, w);
+			if (w.equals(mainWindow)) continue;
+
+			images = im.imageSave(mainWindow, w);
+			fileName = im.getFileName();
+			im.mergeImage(images,fileName , 0);
 		}
 		driver.switchTo().window(mainWindow);
 		sleep(100);

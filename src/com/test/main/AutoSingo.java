@@ -12,7 +12,8 @@ public class AutoSingo {
 		System.out.println();
 		
 		Capture c = new Capture("https://onetouch.police.go.kr/login.do",false);
-		c.doJob();
+		c.build("src/singo.properties")
+		 .doJob();
 //		c.imageSaveTest();
 		
 		System.out.println();

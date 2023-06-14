@@ -31,6 +31,7 @@ public class ImageMerge {
 	
 	private int scrollDown =0;
 	private int elementHeight = 0;
+	private int lastScrollHeigh = 0;
 	public ImageMerge(WebDriver driver) {
 		super();
 		this.driver = driver;
@@ -51,27 +52,24 @@ public class ImageMerge {
 		int totalCapturedImg = 0;
 		int imgHeight = 0;
 		int k=0;
+		Object lastY = null;
 		while (totalCapturedImg <= contentHeight+100) {
 //			scrFile[k] = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 			scrFile[k] = ((TakesScreenshot) webElement).getScreenshotAs(OutputType.FILE);
 			imgHeight = getImageHeight(scrFile[k]);
 			js.executeScript("window.scrollTo(0," + (imgHeight)* (k + 1) + ")");
-			
 			k+=1;
 			totalCapturedImg +=imgHeight;
 			ob = js.executeScript("return window.scrollY");
+			if(lastY!= null && lastY.equals(ob)) break;
+			lastY= ob;
 			System.out.println(ob);
 			sleep(10);
-		}		
-		Arrays.stream(scrFile).filter(t-> t!=null).forEach(t ->{
-			try {
-				copy(new FileInputStream(t), new FileOutputStream(new File(saveDir+"temp/"+t.getName())));
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+		}
+		
+		lastScrollHeigh = Math.round(Float.parseFloat(String.valueOf(lastY)));
 		driver.close();
+		
 		return scrFile;
 	}
 	private int getImageHeight(File file) {
@@ -106,7 +104,8 @@ public class ImageMerge {
 			for (int i = 0; i < is.length; i++) {
 				int cutHeight = tempHeight;
 				if(is.length-1 == i ) {
-					cutHeight -= (height - elementHeight);
+//					cutHeight -= (height - elementHeight);
+					cutHeight = lastScrollHeigh;
 				}
 				graphics.drawImage(is[i], 0, cutHeight, null);
 				tempHeight += is[i].getHeight();
@@ -116,7 +115,7 @@ public class ImageMerge {
 			File saveFile = new File(saveDir+ fileName + ".png");
 			int i =0 ;
 			while(saveFile.exists()) {
-				saveFile = new File(saveDir+ fileName + i +".png");
+				saveFile = new File(saveDir+ fileName + "_("+i +").png");
 				i+=1;
 			}
 			ImageIO.write(mergedImage, "png",saveFile);
