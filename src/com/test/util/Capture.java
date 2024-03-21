@@ -12,16 +12,19 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -55,16 +58,15 @@ public class Capture {
 	public Capture(String base_url, boolean show) throws Exception {
 
 		super();
-		WebDriverManager.chromedriver().setup();
+//		WebDriverManager.chromedriver().setup();
+		
+		System.setProperty("webdriver.chrome.driver", "D:/chromedriver-win64/chromedriver.exe");
+		
 		System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
 		// os 에 따른 크롬드라이버 선택
 		String osName = System.getProperty("os.name").toLowerCase();
-//		if (osName != null && osName.contains("windows")) {
-//			WEB_DRIVER_PATH += ".exe";
-//		} else if (osName != null && osName.contains("linux")) {
-//			WEB_DRIVER_PATH += "Linux";
-//		}
 		System.out.printf("os name is : %s\n", osName);
+		
 		this.base_url = base_url;
 		ChromeOptions options = new ChromeOptions();
 
@@ -79,6 +81,7 @@ public class Capture {
 		options.setCapability("ignoreProtectedModeSettings", true);
 		options.setCapability("acceptInsecureCerts", true);
 		options.addArguments("--start-maximized");
+		
 		driver = new ChromeDriver(options);
 		waiter = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));
 		js = (JavascriptExecutor) driver;
@@ -96,24 +99,7 @@ public class Capture {
 		}
 		return this;
 	}
-	private void loadProperties() throws Exception {
-		Properties properties = new Properties();
-		properties.load(new BufferedInputStream(new FileInputStream(new File("src/singo.properties"))));
 
-		if (propertiesMap == null) {
-			propertiesMap = new HashMap<>();
-		}
-
-		System.out.println();
-		System.out.println("\t\tchecking your properties file\n");
-		for (Object ob : properties.keySet()) {
-			System.out.println("\t\t" + ob + " : \t "
-					+ new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
-			propertiesMap.put((String) ob,
-					new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
-		}
-		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
-	}
 	private void loadProperties(String prop) throws Exception {
 		Properties properties = new Properties();
 		properties.load(new BufferedInputStream(new FileInputStream(new File(prop))));
@@ -142,12 +128,74 @@ public class Capture {
 		}
 		return a;
 	}
-
-	public void doJob() {
+	public void doSinmungo() throws Exception{
 		driver.get(base_url);
 		sleep(1000);
 		Actions action = new Actions(driver);
 		Window window = driver.manage().window();
+		
+		driver.findElement(By.xpath("//*[@id=\"username\"]")).sendKeys(propertiesMap.get("userid"));
+		driver.findElement(By.xpath("//*[@id=\"password\"]")).sendKeys(propertiesMap.get("password"));
+		driver.findElement(By.xpath("//*[@id=\"contents\"]/div/ul/li[1]/article/div[1]/p[3]/button")).click();
+		sleep(500);
+		
+		driver.get("https://www.safetyreport.go.kr/#/mypage/mysafereport");
+
+		try {
+			waiter.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#table1Body")));
+		} catch (Exception e) {
+			e.printStackTrace();
+			// TODO: handle exception
+			System.out.println("대기 실패");
+		}
+
+		List<String> list = new ArrayList<>();
+		
+		WebElement el = driver.findElement(By.cssSelector("#table1Body"));
+		List<WebElement> c = el.findElements(By.tagName("tr"));
+		
+		sleep(1000);
+		
+		// 주소 캐오기, 여기서 이전 신고내용 및 기간관련 필터링이 들어가야 한다.
+		for (WebElement tr : c) {
+			WebElement hiddenInputVal = tr.findElement(By.cssSelector(String.format("td > input[type=hidden]")));
+			String date = tr.findElement(By.cssSelector(String.format("td:nth-child(2)"))).getText();
+			Date dt = MyUtils.toDate(new SimpleDateFormat(""),date );
+			if(hiddenInputVal !=null) {
+				list.add(hiddenInputVal.getDomAttribute("value"));
+			}
+		}
+		String mainWindow = driver.getWindowHandle();
+		ImageMerge im = new ImageMerge(driver);
+		File[] images = null;
+		String fileName = "";
+		
+		// 새창에서 열기
+		for(int i =0; i<list.size();i++) {
+			String address = list.get(i);
+			String temp = String.format("window.open('https://www.safetyreport.go.kr/#mypage/mysafereport/%s');", address);
+			js.executeScript(temp);
+			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { // 탭의 개수가 10가 추가되면 저장 시작
+				for (String w : driver.getWindowHandles()) {
+					if (w.equals(mainWindow))
+						continue; 
+					images = im.imageSave(mainWindow, w);
+					fileName = im.getFileName();
+					im.mergeImage(images,fileName , 0);
+				}
+				driver.switchTo().window(mainWindow);
+				sleep(100);
+			}
+		}
+		System.out.println();
+	}
+
+	public void doSmartReport() {
+		driver.get(base_url);
+		sleep(1000);
+		Actions action = new Actions(driver);
+		Window window = driver.manage().window();
+		
 		System.out.println(window.getSize().getWidth() + " : " + window.getSize().getHeight());
 		try {
 			// 혹시 alert가 안 뜨는 경우도 있으니까

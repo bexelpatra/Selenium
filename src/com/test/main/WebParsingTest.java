@@ -24,6 +24,8 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.test.util.ImageMerge;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 // 텔레그램 메세지 파싱
@@ -63,10 +65,11 @@ public class WebParsingTest {
 		driver = new ChromeDriver(options);
 		waiter = new WebDriverWait(driver, Duration.of(2000, ChronoUnit.MILLIS));
 		js = (JavascriptExecutor) driver;
-		base_url = "chrome://version/";
+//		base_url = "chrome://version/";
+		base_url = "https://comic.naver.com/webtoon/detail?titleId=778963&no=93";
 		action = new Actions(driver);
 		driver.get(base_url);
-		System.out.println(driver.findElement(By.cssSelector("#copy-content")).getText());
+//		System.out.println(driver.findElement(By.cssSelector("#copy-content")).getText());
 		
 	}
 	public void doJob() {
@@ -88,6 +91,9 @@ public class WebParsingTest {
 		.build().perform();
 		
 		
+	}
+	public void doJob2() {
+		ImageMerge imageMerge = new ImageMerge(driver); 		
 	}
 	private void byInnerText() {
 		String totalText = driver.findElement(By.className("history")).getText();

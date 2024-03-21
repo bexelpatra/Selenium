@@ -3,13 +3,9 @@ package com.test.util;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
@@ -21,20 +17,25 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import com.test.interfaces.FilenameSetter;
+
 public class ImageMerge {
 	private WebDriver driver;
 	private JavascriptExecutor js;
 
 	private WebElement webElement;
+	private FilenameSetter filenameSetter;
+
 	private String saveDir = "src/images/test/";
 	private String fileName = "";
 	
 	private int scrollDown =0;
 	private int elementHeight = 0;
 	private int lastScrollHeigh = 0;
-	public ImageMerge(WebDriver driver) {
+	public ImageMerge(WebDriver driver,FilenameSetter filenameSetter) {
 		super();
 		this.driver = driver;
+		this.filenameSetter = filenameSetter;
 		js = (JavascriptExecutor) driver;
 		this.scrollDown=driver.manage().window().getSize().getHeight()/2;
 	}
@@ -44,7 +45,8 @@ public class ImageMerge {
 		int windowHeight = driver.manage().window().getSize().height;
 		int contentHeight = webElement.getSize().getHeight();
 		this.elementHeight = contentHeight;
-		setFileName();
+//		setFileName();
+		this.fileName = filenameSetter.setFileName(driver);
 
 		System.out.printf("window height : %d , content height : %d \n",windowHeight, contentHeight);
 		File[] scrFile = new File[contentHeight/(windowHeight/2)];
