@@ -13,7 +13,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+// import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class OpenPage {
 	private WebDriver driver;
@@ -32,7 +32,7 @@ public class OpenPage {
 //		WebDriverManager.chromedriver().setup();
 		
 		System.setProperty("webdriver.chrome.driver", "D:/chromedriver-win64/chromedriver.exe");
-		System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
+		// System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
 		// os 에 따른 크롬드라이버 선택
 
 		this.base_url = base_url;

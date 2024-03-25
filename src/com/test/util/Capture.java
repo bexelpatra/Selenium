@@ -42,7 +42,10 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+import com.test.dto.LoginInfo;
+import com.test.website.SmartJebo;
+
+// import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Capture {
 	private WebDriver driver;
@@ -56,13 +59,12 @@ public class Capture {
 	private String saveDir = "src/images/";
 
 	public Capture(String base_url, boolean show) throws Exception {
-
+		
 		super();
 //		WebDriverManager.chromedriver().setup();
-		
 		System.setProperty("webdriver.chrome.driver", "D:/chromedriver-win64/chromedriver.exe");
 		
-		System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
+		// System.out.printf("chrome driver path : %s by webDriverManager \n",WebDriverManager.chromedriver().getDownloadedDriverPath());
 		// os 에 따른 크롬드라이버 선택
 		String osName = System.getProperty("os.name").toLowerCase();
 		System.out.printf("os name is : %s\n", osName);
@@ -93,6 +95,8 @@ public class Capture {
 	public Capture build(String properties) {
 		try {
 			loadProperties(properties);
+			saveDir = convertEncoding(propertiesMap.getOrDefault("saveDir", saveDir).toString());
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -116,7 +120,6 @@ public class Capture {
 			propertiesMap.put((String) ob,
 					new String(properties.getProperty(ob.toString()).getBytes("ISO-8859-1"), "utf-8"));
 		}
-		saveDir = convertEncoding(properties.getOrDefault("saveDir", saveDir).toString());
 	}
 	private String convertEncoding(String iso) {
 		String a = "";
@@ -151,22 +154,42 @@ public class Capture {
 
 		List<String> list = new ArrayList<>();
 		
-		WebElement el = driver.findElement(By.cssSelector("#table1Body"));
-		List<WebElement> c = el.findElements(By.tagName("tr"));
-		
 		sleep(1000);
-		
-		// 주소 캐오기, 여기서 이전 신고내용 및 기간관련 필터링이 들어가야 한다.
-		for (WebElement tr : c) {
-			WebElement hiddenInputVal = tr.findElement(By.cssSelector(String.format("td > input[type=hidden]")));
-			String date = tr.findElement(By.cssSelector(String.format("td:nth-child(2)"))).getText();
-			Date dt = MyUtils.toDate(new SimpleDateFormat(""),date );
-			if(hiddenInputVal !=null) {
-				list.add(hiddenInputVal.getDomAttribute("value"));
+		// 전체 갯수
+		int count = Integer.parseInt(driver.findElement(By.cssSelector("#contents > div.table_bbs.list.tb_sty01 > p > strong")).getText());
+
+		// 페이지 확인
+		List<WebElement> pages = driver.findElements(By.cssSelector("#table1 > tfoot > tr > td > ul > li.footable-page.visible > a"));
+		for (WebElement page : pages) {
+			page.click(); // 페이지 이동
+			sleep(1000);
+			WebElement el = driver.findElement(By.cssSelector("#table1Body"));
+
+			List<WebElement> tr = el.findElements(By.tagName("tr"));
+			// 주소 캐오기, 여기서 이전 신고내용 및 기간관련 필터링이 들어가야 한다.
+			for (WebElement row : tr) {
+				WebElement hiddenInputVal = row.findElement(By.cssSelector(String.format("td > input[type=hidden]")));
+				String date = row.findElement(By.cssSelector(String.format("td:nth-child(2)"))).getText();
+				Date dt = MyUtils.toDate(new SimpleDateFormat("yyyy-mm-dd"),date );
+				String state = row.findElement(By.cssSelector("td.bbs_subject > span")).getAttribute("class");
+				if(!"ico_state_end".equals(state)) continue;
+				if(hiddenInputVal !=null) {
+					list.add(hiddenInputVal.getDomAttribute("value"));
+				}
 			}
 		}
+
 		String mainWindow = driver.getWindowHandle();
-		ImageMerge im = new ImageMerge(driver);
+		ImageMerge im = new ImageMerge(driver,"src/images/test/", webdriver -> {
+			String namaewa = "default";
+			try {
+				namaewa = webdriver.findElement(By.cssSelector("#contents > div:nth-child(4) > table > tbody > tr:nth-child(1) > td:nth-child(2) > strong")).getText();
+			} catch (Exception e) {
+				// TODO: handle exception
+				namaewa="fail to get title";
+			}
+			return namaewa;
+		});
 		File[] images = null;
 		String fileName = "";
 		
@@ -175,7 +198,8 @@ public class Capture {
 			String address = list.get(i);
 			String temp = String.format("window.open('https://www.safetyreport.go.kr/#mypage/mysafereport/%s');", address);
 			js.executeScript(temp);
-			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { // 탭의 개수가 10가 추가되면 저장 시작
+			// 탭의 개수가 10가 추가되면 저장 시작
+			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { 
 				for (String w : driver.getWindowHandles()) {
 					if (w.equals(mainWindow))
 						continue; 
@@ -196,6 +220,12 @@ public class Capture {
 		Actions action = new Actions(driver);
 		Window window = driver.manage().window();
 		
+		SmartJebo smartJebo = new SmartJebo(driver, 
+		LoginInfo.builder()
+		.id(propertiesMap.get("id"))
+		.pw(propertiesMap.get("pw"))
+		.build()
+		);
 		System.out.println(window.getSize().getWidth() + " : " + window.getSize().getHeight());
 		try {
 			// 혹시 alert가 안 뜨는 경우도 있으니까
@@ -212,14 +242,14 @@ public class Capture {
 		Map<String, String> keyMap = new HashMap<>();
 		// 저장된 키패드 목록이 있으면 불러온다.
 		try {
-			loadKeypad(keyMap);
+			smartJebo.loadKeypad(keyMap);
 		} catch (Exception e) {
 			// 저장된 키보드가 없으면 키보드를 읽어온다.
-			keypadExtract(keyMap);
+			smartJebo.keypadExtract(keyMap);
 		}
 
 		// 키패드 저장하기
-		saveKeypad(keyMap);
+		smartJebo.saveKeypad(keyMap);
 
 		// 로그인 부분
 		String pw = propertiesMap.get("password");
@@ -239,11 +269,15 @@ public class Capture {
 
 		sleep(500);
 		// 로그인 완료
-
 		// 리스트 돌면서 캡쳐 준비
 		driver.get("http://onetouch.police.go.kr/mypage/myGiveInfoList.do");
 		sleep(200);
-		
+		System.out.println("진짜");
+		System.out.println(driver.getCurrentUrl());
+
+		if(true){
+			return;
+		}
 		// 처리일을 입력받아서 진행 
 		js.executeScript(String.format("$(\"#mFromDate\").val('%s')",propertiesMap.get("from"))); // 기간검색 시작일
 		js.executeScript(String.format("$(\"#mToDate\").val('%s')",propertiesMap.get("to"))); // 기간검색 종료일
@@ -265,12 +299,15 @@ public class Capture {
 		int count = Integer.parseInt(driver.findElement(By.xpath("//*[@id=\"container\"]/div[2]/div[2]/p[1]/span")).getText());
 		int page = 1;
 
-		// if (count < 20) {
-//			System.out.println("total count is to low, you can use this when the count is equal or lager than 20");
-//			return;
-//		}
 		System.out.println("total count : " + count);
-		ImageMerge im = new ImageMerge(driver);
+		// imageMerge 저장, 저장할 이름 설정
+		ImageMerge im = new ImageMerge(driver,"src/images/test/", webdriver -> {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(webdriver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(4)")).getText().replaceAll(":", "-"));
+			stringBuilder.append(".");
+			stringBuilder.append(webdriver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(4) > td:nth-child(2)")).getText());
+			return stringBuilder.toString();
+		});
 		File[] images = null;
 		String fileName = "";
 		for (int i = 0; i < count; i++) {
@@ -348,53 +385,6 @@ public class Capture {
 		for (String window: driver.getWindowHandles()) {
 			if(window.equals(main)) continue;
 			imageSave(main, window);			
-		}
-	}
-	private void loadKeypad(Map<String, String> keyMap) throws FileNotFoundException, IOException, ParseException {
-		BufferedReader reader = new BufferedReader(new FileReader(new File("src/keypad.txt")));
-		String jsonKeypad = reader.readLine();
-		JSONObject keyJO = (JSONObject) new JSONParser().parse(jsonKeypad);
-		for (Object key : keyJO.keySet()) {
-			keyMap.put(key.toString(), keyJO.get(key).toString());
-		}
-	}
-
-	private void keypadExtract(Map<String, String> keyMap) {
-		String handle = "";
-		String key = "";
-		String val = "";
-
-		for (int i = 0; i < 3; i++) {
-			if (i == 0) {
-
-			} else if (i == 1) {
-				handle = "VPad.ClickHangul();";
-			} else {
-				handle = "VPad.ClickShift();";
-			}
-			js.executeScript(handle);
-			for (int j = 0; j < 47; j++) {
-				webElement = driver.findElement(By.id("m_charText" + j + ""));
-				key = webElement.getText();
-				if (keyMap.get(key) == null) {
-					val = handle + webElement.getAttribute("onclick") + ";" + handle;
-					keyMap.put(key, val);
-				}
-			}
-			js.executeScript(handle);
-		}
-	}
-
-	private void saveKeypad(Map<String, String> keyMap) {
-		String keypadjson = new JSONObject().toJSONString(keyMap);
-		try {
-			FileOutputStream os = new FileOutputStream(new File("src/keypad.txt"));
-			os.write(keypadjson.getBytes());
-			os.close();
-			System.out.println("키패드 저장 완료");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -485,40 +475,6 @@ public class Capture {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	@Deprecated
-	public void fileConnet(File[] origin, File to) throws Exception {
-		FileInputStream[] input = new FileInputStream[origin.length];
-
-		FileOutputStream oss = new FileOutputStream(to);
-
-		System.out.println("file size ");
-		for (int i = 0; i < origin.length; i++) {
-			input[i] = new FileInputStream(origin[i]);
-			System.out.println(input[i].getChannel().size() + ", " + origin[i].length());
-
-		}
-		// 3. 한번에 read하고, write할 사이즈 지정
-		byte[] buf = new byte[1024];
-
-		// 4. buf 사이즈만큼 input에서 데이터를 읽어서, output에 쓴다.
-		int readData = 0;
-		int bytes = 0;
-		for (int i = 0; i < input.length; i++) {
-			while ((readData = input[i].read(buf)) > 0) {
-				oss.write(buf, 0, readData);
-			}
-			input[i].close();
-		}
-		// 5. Stream close
-		oss.close();
-		fileChanger(to, new File("c:/Temp/merge.png"), origin[0].length());
-	}
-
-	@Deprecated
-	private void setWindowSize(int width, int height) {
-		driver.manage().window().setSize(new Dimension(width, height));
 	}
 
 	/**

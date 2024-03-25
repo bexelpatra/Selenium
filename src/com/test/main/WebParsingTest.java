@@ -26,7 +26,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.test.util.ImageMerge;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+// import io.github.bonigarcia.wdm.WebDriverManager;
 
 // 텔레그램 메세지 파싱
 // chat bot api도 있지만 추후 도전해보기로...
@@ -56,7 +56,7 @@ public class WebParsingTest {
 	}
 	public WebParsingTest() {
 		// TODO Auto-generated constructor stub
-		WebDriverManager.chromedriver().setup();
+		// WebDriverManager.chromedriver().setup();
 		ChromeOptions options = new ChromeOptions();
 		// 리눅스에서 실행하기 위해 필요한 옵션들...		
 		options.setCapability("ignoreProtectedModeSettings", true);
@@ -93,7 +93,9 @@ public class WebParsingTest {
 		
 	}
 	public void doJob2() {
-		ImageMerge imageMerge = new ImageMerge(driver); 		
+		ImageMerge imageMerge = new ImageMerge(driver,"",webdriver -> {
+			return "";
+		}); 		
 	}
 	private void byInnerText() {
 		String totalText = driver.findElement(By.className("history")).getText();

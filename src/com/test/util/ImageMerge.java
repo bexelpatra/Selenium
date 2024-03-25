@@ -7,8 +7,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.imageio.ImageIO;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -16,28 +19,43 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.test.interfaces.FilenameSetter;
+import com.test.interfaces.Waiter;
 
 public class ImageMerge {
 	private WebDriver driver;
+	private WebDriverWait driverWait;
 	private JavascriptExecutor js;
 
 	private WebElement webElement;
 	private FilenameSetter filenameSetter;
 
-	private String saveDir = "src/images/test/";
+	private String saveDir = "";
 	private String fileName = "";
 	
 	private int scrollDown =0;
 	private int elementHeight = 0;
 	private int lastScrollHeigh = 0;
-	public ImageMerge(WebDriver driver,FilenameSetter filenameSetter) {
+	public ImageMerge(WebDriver driver,String saveDir,FilenameSetter filenameSetter) {
 		super();
 		this.driver = driver;
+		this.driverWait = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));
 		this.filenameSetter = filenameSetter;
-		js = (JavascriptExecutor) driver;
+		this.js = (JavascriptExecutor) driver;
 		this.scrollDown=driver.manage().window().getSize().getHeight()/2;
+
+		if(saveDir!=null){
+			this.saveDir = saveDir;
+			File dir = new File(saveDir);
+			if(!dir.exists()){
+				if(!dir.mkdirs()){
+					this.saveDir = "src/images/test/";
+				};
+			}
+		}
 	}
 	public File[] imageSave(String mainWindow, String windowName) {
 		driver.switchTo().window(windowName);
@@ -65,7 +83,7 @@ public class ImageMerge {
 			ob = js.executeScript("return window.scrollY");
 			if(lastY!= null && lastY.equals(ob)) break;
 			lastY= ob;
-			System.out.println(ob);
+			// System.out.println(ob);
 			sleep(10);
 		}
 		
@@ -157,11 +175,54 @@ public class ImageMerge {
 	public String getFileName() {
 		return this.fileName;
 	}
-	private void setFileName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(driver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(4)")).getText().replaceAll(":", "-"));
-		sb.append(".");
-		sb.append(driver.findElement(By.cssSelector("#container > div.content > div:nth-child(4) > table > tbody > tr:nth-child(4) > td:nth-child(2)")).getText());
-		this.fileName = sb.toString();
-	}
+
+	public void saveImage(String mainWindow,List<String> list){
+        File[] images = null;
+		String fileName = "";
+		driver.switchTo().window(mainWindow);
+
+		// 새창에서 열기
+		for(int i =0; i<list.size();i++) {
+			String address = list.get(i);
+			js.executeScript(address);
+			// 탭의 개수가 10가 추가되면 저장 시작
+			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { 
+				for (String w : driver.getWindowHandles()) {
+					if (w.equals(mainWindow))
+						continue; 
+					MyUtils.sleep(100);
+					images = imageSave(mainWindow, w);
+					fileName = getFileName();
+					mergeImage(images,fileName , 0);
+				}
+				driver.switchTo().window(mainWindow);
+			}
+		}
+    }
+	public void saveImage(String mainWindow,Waiter waiter,List<String> list){
+        File[] images = null;
+		String fileName = "";
+		driver.switchTo().window(mainWindow);
+
+		// 새창에서 열기
+		for(int i =0; i<list.size();i++) {
+			String address = list.get(i);
+			js.executeScript(address);
+			// 탭의 개수가 10가 추가되면 저장 시작
+			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { 
+				for (String w : driver.getWindowHandles()) {
+					if (w.equals(mainWindow))
+						continue; 
+					driver.switchTo().window(w);
+					if(waiter.until(driver)){
+						images = imageSave(mainWindow, w);
+						fileName = getFileName();
+						mergeImage(images,fileName , 0);
+					}
+				}
+				driver.switchTo().window(mainWindow);
+				MyUtils.sleep(100);
+			}
+		}
+    }
 }

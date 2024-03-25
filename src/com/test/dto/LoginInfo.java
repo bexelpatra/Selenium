@@ -1,26 +1,19 @@
 package com.test.dto;
 
+import java.util.Map;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
-@RequiredArgsConstructor
+@Builder
+@Data
 public class LoginInfo {
 
-	private final WebDriver driver;
-	private final By byId;
-	private final By byPw;
-	private final String id;
-	private final String pw;
+	private String id;
+	private String pw;
+	private Map<String,String> extraInfo;
 
-	private final By byButton;
-	
-	
-	public void login() {
-		driver.findElement(byId).sendKeys(id);
-		driver.findElement(byPw).sendKeys(pw);
-		driver.findElement(byButton).click();
-	}
-	
 }
