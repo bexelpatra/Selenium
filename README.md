@@ -36,9 +36,15 @@ some funny points
    
 2. image merging
   - to have full screen image, i captured screen image and scrolled down the page until the bottom. then merged it together.
+  - at docker container, i have to adjust not only vertical, but also horizontal.
   - this content is in the ImageMerge.java
+
+things to improve
+1. mathing automatically chrome version and chrome driver
+   - i decided to use library. [WebdriverManager](https://github.com/bonigarcia/webdrivermanager) was worked properly. but after chrome updated up to date version, this library throws error. so i commented out
 
 review in velog
 -[review about first edition](https://velog.io/@a45hvn/%EC%9E%90%EB%B0%94-%EC%85%80%EB%A0%88%EB%8B%88%EC%9B%80%EC%9C%BC%EB%A1%9C-%EC%9B%B9%EC%97%85%EB%AC%B4-%EC%9E%90%EB%8F%99%ED%99%94%ED%95%98%EA%B8%B0feat-%EA%B5%90%ED%86%B5%EC%95%88%EC%A0%84-%EA%B3%B5%EC%9D%B5%EC%A0%9C%EB%B3%B4%EB%8B%A8)
+<br>
 -[review about newest edition - not yet...](null)
 
