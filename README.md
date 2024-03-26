@@ -40,7 +40,7 @@ some funny points
   - this content is in the ImageMerge.java
 
 things to improve
-1. mathing automatically chrome version and chrome driver
+1. matching automatically chrome version and chrome driver
    - i decided to use library. [WebdriverManager](https://github.com/bonigarcia/webdrivermanager) was worked properly. but after chrome updated up to date version, this library throws error. so i commented out
 
 review in velog
