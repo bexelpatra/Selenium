@@ -190,7 +190,6 @@ public class ImageMerge {
 				for (String w : driver.getWindowHandles()) {
 					if (w.equals(mainWindow))
 						continue; 
-					MyUtils.sleep(100);
 					images = imageSave(mainWindow, w);
 					fileName = getFileName();
 					mergeImage(images,fileName , 0);

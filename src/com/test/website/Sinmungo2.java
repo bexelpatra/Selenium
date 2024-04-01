@@ -20,24 +20,25 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import com.test.dto.LoginInfo;
 import com.test.interfaces.WebPageLoading;
 import com.test.interfaces.WebPageLogin;
+import com.test.interfaces.WebpageCrowlable;
 import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 
-public class Sinmungo implements WebPageLogin,WebPageLoading {
+public class Sinmungo2 extends WebpageCrowlable {
 
     WebDriver driver;
     JavascriptExecutor js;
 
     WebDriverWait waiter;
     
-    public Sinmungo(WebDriver webDriver) {
+    public Sinmungo2(WebDriver webDriver) {
         this.driver = webDriver;
         this.js = (JavascriptExecutor)webDriver;
         this.waiter = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));
 
     }
 
-    @Override
+    // @Override
     public void login(WebDriver driver, LoginInfo loginInfo) {
         // TODO Auto-generated method stub
         driver.findElement(By.xpath("//*[@id=\"username\"]")).sendKeys(loginInfo.getId());
