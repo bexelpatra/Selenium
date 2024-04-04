@@ -6,16 +6,17 @@ import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-
-import io.netty.util.ThreadDeathWatcher;
 
 public class MyUtils {
 
@@ -66,5 +67,20 @@ public class MyUtils {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public static void deleteFiles(File[] files){
+		Arrays.stream(files).filter(t -> {
+			return t!=null;
+		}).forEach(File::deleteOnExit);
+	}
+
+	public static List<List<String>> divideList(List<String> list, int n ){
+		List<List<String>> result = new ArrayList<>();
+		int size = list.size();
+		for (int i = 0; i < n-1; i++) {
+			result.add(list.subList(size/n * i, size/n*(i+1)));
+		}
+		return result;
 	}
 }

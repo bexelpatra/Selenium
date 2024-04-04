@@ -39,6 +39,7 @@ public class ImageMerge {
 	private int scrollDown =0;
 	private int elementHeight = 0;
 	private int lastScrollHeigh = 0;
+	private int tabNumbers = 5;
 	public ImageMerge(WebDriver driver,String saveDir,FilenameSetter filenameSetter) {
 		super();
 		this.driver = driver;
@@ -66,7 +67,7 @@ public class ImageMerge {
 //		setFileName();
 		this.fileName = filenameSetter.setFileName(driver);
 
-		System.out.printf("window height : %d , content height : %d \n",windowHeight, contentHeight);
+		System.out.printf("filename : %s  window height : %d , content height : %d \n",fileName,windowHeight, contentHeight);
 		File[] scrFile = new File[contentHeight/(windowHeight/2)];
 		Object ob = null;
 		int totalCapturedImg = 0;
@@ -175,7 +176,7 @@ public class ImageMerge {
 	public String getFileName() {
 		return this.fileName;
 	}
-
+	
 	public void saveImage(String mainWindow,List<String> list){
         File[] images = null;
 		String fileName = "";
@@ -185,14 +186,15 @@ public class ImageMerge {
 		for(int i =0; i<list.size();i++) {
 			String address = list.get(i);
 			js.executeScript(address);
-			// 탭의 개수가 10가 추가되면 저장 시작
-			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { 
+			if ((driver.getWindowHandles().size() - 1) % tabNumbers == 0 || i == list.size()-1) { 
 				for (String w : driver.getWindowHandles()) {
 					if (w.equals(mainWindow))
 						continue; 
 					images = imageSave(mainWindow, w);
 					fileName = getFileName();
 					mergeImage(images,fileName , 0);
+					// temp 파일을 제때 지우자...
+					MyUtils.deleteFiles(images);
 				}
 				driver.switchTo().window(mainWindow);
 			}
@@ -207,8 +209,7 @@ public class ImageMerge {
 		for(int i =0; i<list.size();i++) {
 			String address = list.get(i);
 			js.executeScript(address);
-			// 탭의 개수가 10가 추가되면 저장 시작
-			if ((driver.getWindowHandles().size() - 1) % 10 == 0 || i == list.size()-1) { 
+			if ((driver.getWindowHandles().size() - 1) % tabNumbers == 0 || i == list.size()-1) { 
 				for (String w : driver.getWindowHandles()) {
 					if (w.equals(mainWindow))
 						continue; 
@@ -217,10 +218,36 @@ public class ImageMerge {
 						images = imageSave(mainWindow, w);
 						fileName = getFileName();
 						mergeImage(images,fileName , 0);
+						MyUtils.deleteFiles(images);
 					}
 				}
 				driver.switchTo().window(mainWindow);
 				MyUtils.sleep(100);
+			}
+		}
+    }
+	public void asyncSaveImage(String mainWindow,Waiter waiter,List<String> list){
+		driver.switchTo().window(mainWindow);
+
+		// 새창에서 열기
+		for(int i =0; i<list.size();i++) {
+			String address = list.get(i);
+			js.executeScript(address);
+			if ((driver.getWindowHandles().size() - 1) % tabNumbers == 0 || i == list.size()-1) { 
+				for (String w : driver.getWindowHandles()) {
+					if (w.equals(mainWindow)){
+						continue;
+					} 
+					if(waiter.until(driver)){
+						File[] images = imageSave(mainWindow, w);
+						String fileName = getFileName();
+						new Thread(() -> {
+							mergeImage(images,fileName , 0);
+							// MyUtils.deleteFiles(images);
+						}).start();
+					}
+				}
+				driver.switchTo().window(mainWindow);
 			}
 		}
     }
