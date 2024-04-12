@@ -11,6 +11,7 @@ import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 import com.test.website.Sinmungo;
 
+// 이제는 사용하지 않을 예정
 public class AutoSingo {
     public static void main(String[] args) throws Exception {
         System.out.println("================");
@@ -23,11 +24,7 @@ public class AutoSingo {
         
         
         driver.get("https://www.safetyreport.go.kr/#main/login/login");
-        LoginInfo loginInfo = LoginInfo.builder()
-                                        .id(propertiesMap.get("userid"))
-                                        .pw(propertiesMap.get("password"))
-                                        .build();
-		
+        LoginInfo loginInfo = new LoginInfo(propertiesMap.get("id"), propertiesMap.get("password"), null);
         Sinmungo sinmungo = new Sinmungo(driver);
         sinmungo.login(driver, loginInfo);
         // 로그인 완료

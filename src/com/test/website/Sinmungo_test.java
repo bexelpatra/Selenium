@@ -24,14 +24,14 @@ import com.test.interfaces.WebpageCrowlable;
 import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 
-public class Sinmungo2 extends WebpageCrowlable {
+public class Sinmungo_test extends WebpageCrowlable {
 
     WebDriver driver;
     JavascriptExecutor js;
 
     WebDriverWait waiter;
     
-    public Sinmungo2(WebDriver webDriver) {
+    public Sinmungo_test(WebDriver webDriver) {
         this.driver = webDriver;
         this.js = (JavascriptExecutor)webDriver;
         this.waiter = new WebDriverWait(driver, Duration.of(3000, ChronoUnit.MILLIS));

@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.io.File;
 
 
@@ -15,15 +16,17 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.test.dto.LoginInfo;
+import com.test.interfaces.FilenameSetter;
 import com.test.interfaces.WebPageLoading;
 import com.test.interfaces.WebPageLogin;
 import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 
-public class Sinmungo implements WebPageLogin,WebPageLoading {
+public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
 
     WebDriver driver;
     JavascriptExecutor js;
@@ -57,7 +60,8 @@ public class Sinmungo implements WebPageLogin,WebPageLoading {
         List<String> list = new ArrayList<>();
         int count = Integer.parseInt(driver.findElement(By.cssSelector("#contents > div.table_bbs.list.tb_sty01 > p > strong")).getText());        
 
-        int loop = count/10 + count %10>0?1:0;
+        int loop = count/10 + (count %10>0?1:0);
+        System.out.println(loop);
         WebElement nextButton = driver.findElement(By.cssSelector("#table1 > tfoot > tr > td > ul > li:nth-last-child(2) > a"));
         for (int i = 0; i < loop; i++) {
             MyUtils.sleep(300);
@@ -73,6 +77,7 @@ public class Sinmungo implements WebPageLogin,WebPageLoading {
                 
 				String state = row.findElement(By.cssSelector("td.bbs_subject > span")).getAttribute("class");
 				if(!"ico_state_end".equals(state)) continue;
+                System.out.println(hiddenInputVal.getDomAttribute("value"));
 				if(hiddenInputVal !=null) {
 					list.add(String.format("window.open('https://www.safetyreport.go.kr/#mypage/mysafereport/%s');",hiddenInputVal.getDomAttribute("value")));
 				}
@@ -84,5 +89,57 @@ public class Sinmungo implements WebPageLogin,WebPageLoading {
 		}
 
         return list;
+    }
+
+    @Override
+    public String setFileName(WebDriver webdriver) {
+        // TODO Auto-generated method stub
+        String fileName = "default";
+        try {
+            fileName = webdriver.findElement(By.cssSelector("#contents > div:nth-child(4) > table > tbody > tr:nth-child(1) > td:nth-child(2) > strong")).getText();
+        } catch (Exception e) {
+            // TODO: handle exception
+            fileName="fail to get title";
+        }
+        return fileName;
+    }
+    public static void main(String[] args) throws Exception {
+        String[] propertyNames = new String[]{"src/singo2.properties","src/singo.properties"};
+        for (String propertyName : propertyNames) {
+            getImageSaver(propertyName);
+        }
+    }
+
+    private static void getImageSaver(String propertyName) throws Exception {
+        Map<String,String> propertiesMap = MyUtils.loadProperties(propertyName);
+        
+        WebDriver driver = MyUtils.getWebDriver();
+        driver.get("https://www.safetyreport.go.kr/#main/login/login");
+        String mainWindow = driver.getWindowHandle();
+        
+        LoginInfo loginInfo = new LoginInfo(propertiesMap.get("userid"), propertiesMap.get("password"), null);
+        Sinmungo sinmungo = new Sinmungo(driver);
+
+        sinmungo.login(driver, loginInfo);
+
+        driver.get("https://www.safetyreport.go.kr/#/mypage/mysafereport");
+        sinmungo.waiter(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#table1Body")));
+        List<String> addresses = sinmungo.loading(driver);
+
+        String saveDir = "src/images/test/"+propertiesMap.get("userid")+"/";
+        System.out.println(saveDir);
+		ImageMerge imageSaver = new ImageMerge(driver,saveDir, sinmungo);
+
+        imageSaver.asyncSaveImage(mainWindow, webdriver->{
+            for (int j = 0; j < 3; j++) {
+                int h =driver.findElement(By.xpath("/html/body")).getSize().getHeight();
+                if(h>1000){
+                    return true;
+                } else{
+                    MyUtils.sleep(1000);
+                }
+            }
+            return false;
+        },addresses);
     }
 }

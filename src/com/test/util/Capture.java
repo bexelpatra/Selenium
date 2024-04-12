@@ -205,7 +205,7 @@ public class Capture {
 						continue; 
 					images = im.imageSave(mainWindow, w);
 					fileName = im.getFileName();
-					im.mergeImage(images,fileName , 0);
+					im.mergeImage(images,null);
 				}
 				driver.switchTo().window(mainWindow);
 				sleep(100);
@@ -220,12 +220,7 @@ public class Capture {
 		Actions action = new Actions(driver);
 		Window window = driver.manage().window();
 		
-		SmartJebo smartJebo = new SmartJebo(driver, 
-		LoginInfo.builder()
-		.id(propertiesMap.get("id"))
-		.pw(propertiesMap.get("pw"))
-		.build()
-		);
+		SmartJebo smartJebo = new SmartJebo(driver, new LoginInfo(propertiesMap.get("id"), propertiesMap.get("password"), null));
 		System.out.println(window.getSize().getWidth() + " : " + window.getSize().getHeight());
 		try {
 			// 혹시 alert가 안 뜨는 경우도 있으니까
@@ -347,7 +342,7 @@ public class Capture {
 							continue; 
 						images = im.imageSave(mainWindow, w);
 						fileName = im.getFileName();
-						im.mergeImage(images,fileName , 0);
+						im.mergeImage(images,null);
 					}
 					driver.switchTo().window(mainWindow);
 					sleep(100);
@@ -365,7 +360,7 @@ public class Capture {
 
 			images = im.imageSave(mainWindow, w);
 			fileName = im.getFileName();
-			im.mergeImage(images,fileName , 0);
+			im.mergeImage(images,null);
 		}
 		driver.switchTo().window(mainWindow);
 		sleep(100);
