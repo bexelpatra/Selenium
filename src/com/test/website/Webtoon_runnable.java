@@ -13,13 +13,13 @@ import com.test.interfaces.WebPageLoading;
 import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 
-public class Webtoon  implements WebPageLoading ,FilenameSetter{
+public class Webtoon_runnable  implements WebPageLoading ,FilenameSetter{
     WebDriver driver;
     JavascriptExecutor js;
 
     LoginInfo loginInfo;
     
-    public Webtoon(WebDriver webDriver,LoginInfo loginInfo) {
+    public Webtoon_runnable(WebDriver webDriver,LoginInfo loginInfo) {
         this.driver = webDriver;
         this.js = (JavascriptExecutor)webDriver;
         this.loginInfo = loginInfo;
@@ -40,10 +40,7 @@ public class Webtoon  implements WebPageLoading ,FilenameSetter{
     }
 
     public static void main(String[] args) {
-        for (String string : args) {
-            System.out.println(string);
-        }
-    // getAsyncSave();
+
         getMultiTreadYX();
         drivers.forEach(WebDriver::close);
     }
@@ -83,64 +80,7 @@ public class Webtoon  implements WebPageLoading ,FilenameSetter{
             }
         }
     }
-    private static void getMultiTread() {
-        String webUrl = "https://www.google.com/";
-        WebDriver driver = MyUtils.getWebDriver();
-        driver.get(webUrl);
-        Webtoon webtoon = new Webtoon(driver, null);
-        
-        List<String> list = webtoon.loading(driver);
-        driver.close();
 
-        List<Thread> threads = new ArrayList<>();
-        for (List<String> urls : MyUtils.divideList(list, 2)) {
-            Runnable r = ()->{
-                WebDriver innerDriver = MyUtils.getWebDriver();
-                drivers.add(innerDriver);
-                innerDriver.get("https://www.google.com/");
-                String innerMain = innerDriver.getWindowHandle();
-                ImageMerge im = new ImageMerge(innerDriver, "src/images/test/",webtoon);
-                im.asyncSaveImage(innerMain,driver2 ->{return true;} ,urls ,By.cssSelector("#wrap"));
-            };
-            Thread thread = new Thread(r);
-            // thread.start();
-            threads.add(thread);
-        }
-        for (Thread thread : threads) {
-            thread.start();
-        }
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static void getAsyncSave() {
-        String webUrl = "https://www.google.com/";
-        WebDriver driver = MyUtils.getWebDriver();
-        driver.get(webUrl);
-        Webtoon webtoon = new Webtoon(driver, null);
-
-        String mainwindow = driver.getWindowHandle();
-        // driver.close();
-
-        List<String> list = webtoon.loading(driver);
-        ImageMerge im = new ImageMerge(driver, "src/images/test/", webtoon);
-
-        im.asyncSaveImage(mainwindow,driver2 ->{
-            int count =0;
-            while(driver2.findElement(By.cssSelector("#content")).getSize().getHeight()<1500 && count < 3){
-                count+=1;
-                MyUtils.sleep(1000);
-            }
-            return true;
-        }, list,By.cssSelector("#wrap"));
-    }
-    
     @Override
     public String setFileName(WebDriver webdriver) {
         StringBuilder sb = new StringBuilder();
