@@ -55,7 +55,7 @@ public class AutoSingo {
                 }
             }
             return false;
-        },addresses);
+        },addresses,By.xpath("/html/body"));
 
 		System.out.println();
 		System.out.println("================");

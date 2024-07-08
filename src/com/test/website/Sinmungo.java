@@ -3,6 +3,8 @@ package com.test.website;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +28,7 @@ import com.test.interfaces.WebPageLogin;
 import com.test.util.ImageMerge;
 import com.test.util.MyUtils;
 
+// 안전 신문고 앱에 캡쳐기능이 있어서 필요성이 많이 줄었다...
 public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
 
     WebDriver driver;
@@ -56,6 +59,13 @@ public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
 
     @Override
     public List<String> loading(WebDriver driver) {
+
+        // 날짜 지정(오늘 날짜 기준 1년 전까지)
+        String date = ZonedDateTime.now().minusYears(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        js.executeScript(String.format("document.querySelector('#C_FRM_DATE').value = '%s'", date));
+        driver.findElement(By.cssSelector("#form > fieldset > div > div:nth-child(2) > button")).click();
+        MyUtils.sleep(1000);
+
         // TODO Auto-generated method stub
         List<String> list = new ArrayList<>();
         int count = Integer.parseInt(driver.findElement(By.cssSelector("#contents > div.table_bbs.list.tb_sty01 > p > strong")).getText());        
@@ -77,7 +87,7 @@ public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
                 
 				String state = row.findElement(By.cssSelector("td.bbs_subject > span")).getAttribute("class");
 				if(!"ico_state_end".equals(state)) continue;
-                System.out.println(hiddenInputVal.getDomAttribute("value"));
+                // System.out.println(hiddenInputVal.getDomAttribute("value"));
 				if(hiddenInputVal !=null) {
 					list.add(String.format("window.open('https://www.safetyreport.go.kr/#mypage/mysafereport/%s');",hiddenInputVal.getDomAttribute("value")));
 				}
@@ -105,6 +115,7 @@ public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
     }
     public static void main(String[] args) throws Exception {
         String[] propertyNames = new String[]{"src/singo2.properties","src/singo.properties"};
+        // String[] propertyNames = new String[]{"src/singo.properties"};
         for (String propertyName : propertyNames) {
             getImageSaver(propertyName);
         }
@@ -127,19 +138,19 @@ public class Sinmungo implements WebPageLogin,WebPageLoading, FilenameSetter {
         List<String> addresses = sinmungo.loading(driver);
 
         String saveDir = "src/images/test/"+propertiesMap.get("userid")+"/";
-        System.out.println(saveDir);
 		ImageMerge imageSaver = new ImageMerge(driver,saveDir, sinmungo);
 
-        imageSaver.asyncSaveImage(mainWindow, webdriver->{
+        imageSaver.asyncSaveImageYX(mainWindow, webdriver->{
             for (int j = 0; j < 3; j++) {
                 int h =driver.findElement(By.xpath("/html/body")).getSize().getHeight();
                 if(h>1000){
-                    return true;
+                    // driver.findElement(By.cssSelector("#contents > div:nth-child(4) > table > tbody > tr:nth-child(7) > td")).getText();
+                    return true && driver.findElement(By.cssSelector("#contents > div:nth-child(4) > table > tbody > tr:nth-child(7) > td")).getText().contains("이륜차 위반 메뉴로 접수된 신고");
                 } else{
                     MyUtils.sleep(1000);
                 }
             }
             return false;
-        },addresses);
+        },addresses,By.xpath("/html/body"));
     }
 }
