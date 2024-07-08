@@ -45,7 +45,7 @@ public class ImageMerge {
 	private int scrollDown =0;
 	// private int elementHeight = 0;
 	// private int lastScrollHeigh = 0;
-	private int tabNumbers = 2;
+	private int tabNumbers = 5;
 
 	private ConcurrentHashMap<String,MergeInfo> concurrentHashMap = new ConcurrentHashMap<>();
 	public ImageMerge(WebDriver driver,String saveDir,FilenameSetter filenameSetter) {
@@ -66,10 +66,10 @@ public class ImageMerge {
 			}
 		}
 	}
-	public File[] imageSave(String mainWindow, String windowName) {
+	public File[] imageSave(String mainWindow, String windowName,By by) {
 		driver.switchTo().window(windowName);
 		// webElement = driver.findElement(By.xpath("/html/body"));
-		webElement = driver.findElement(By.cssSelector("#wrap"));
+		webElement = driver.findElement(by);
 		int windowHeight = driver.manage().window().getSize().height;
 		int windowWidth = driver.manage().window().getSize().width;
 		int contentHeight = webElement.getSize().getHeight();
@@ -115,7 +115,7 @@ public class ImageMerge {
 	}
 	
 	// y,x 축 양쪽을 계산한다.
-	public File[][] imageSave(String mainWindow, String windowName,By by) {
+	public File[][] imageSave2D(String mainWindow, String windowName,By by) {
 		driver.switchTo().window(windowName);
 		webElement = driver.findElement(by);
 		int windowHeight = driver.manage().window().getSize().height;
@@ -393,7 +393,7 @@ public class ImageMerge {
 		return this.fileName;
 	}
 	
-	public void saveImage(String mainWindow,List<String> list){
+	public void saveImage(String mainWindow,List<String> list,By by){
         File[] images = null;
 		driver.switchTo().window(mainWindow);
 
@@ -406,7 +406,7 @@ public class ImageMerge {
 					if (w.equals(mainWindow))
 						continue; 
 					driver.switchTo().window(w);
-					images = imageSave(mainWindow, w);
+					images = imageSave(mainWindow, w,by);
 					MergeInfo mergeInfo = concurrentHashMap.get(w);
 					mergeImage(images, mergeInfo);
 					concurrentHashMap.remove(w);
@@ -417,7 +417,7 @@ public class ImageMerge {
 		}
     }
 	// 동기화되어서 oos가 자주 나오지는 않는다.
-	public void saveImage(String mainWindow,Waiter waiter,List<String> list){
+	public void saveImage(String mainWindow,Waiter waiter,List<String> list,By by){
         File[] images = null;
 		driver.switchTo().window(mainWindow);
 
@@ -431,7 +431,7 @@ public class ImageMerge {
 						continue; 
 					driver.switchTo().window(w);
 					if(waiter.until(driver)){
-						images = imageSave(mainWindow, w);
+						images = imageSave(mainWindow, w,by);
 						MergeInfo mergeInfo = concurrentHashMap.get(w);
 						mergeImage(images, mergeInfo);
 						concurrentHashMap.remove(w);
@@ -445,7 +445,7 @@ public class ImageMerge {
     }
 
 
-	public void asyncSaveImage(String mainWindow,Waiter waiter,List<String> list){
+	public void asyncSaveImage(String mainWindow,Waiter waiter,List<String> list,By by){
 		driver.switchTo().window(mainWindow);
 
 		// 새창에서 열기
@@ -459,15 +459,10 @@ public class ImageMerge {
 					}
 					driver.switchTo().window(w);
 					if(waiter.until(driver)){
-						File[] images = imageSave(mainWindow, w);
+						File[] images = imageSave(mainWindow, w,by);
 						new Thread(() -> {
 							MergeInfo mergeInfo = concurrentHashMap.get(w);
-							try {
-								while(!mergeImage(images, mergeInfo,0)){};
-							} catch (Exception e) {
-								// TODO: handle exception
-								System.out.println("왜 안잡히는것같지");
-							}
+							mergeImage(images, mergeInfo,0);
 							concurrentHashMap.remove(w);
 							MyUtils.deleteFiles(images);
 						}).start();
@@ -478,7 +473,7 @@ public class ImageMerge {
 		}
     }
 
-	public void asyncSaveImageYX(String mainWindow,Waiter waiter,List<String> list){
+	public void asyncSaveImageYX(String mainWindow,Waiter waiter,List<String> list,By by){
 		driver.switchTo().window(mainWindow);
 
 		// 새창에서 열기
@@ -492,7 +487,7 @@ public class ImageMerge {
 					}
 					driver.switchTo().window(w);
 					if(waiter.until(driver)){
-						File[][] images = imageSave(mainWindow, w,By.cssSelector("#wrap"));
+						File[][] images = imageSave2D(mainWindow, w,by);
 						new Thread(() -> {
 							MergeInfo mergeInfo = concurrentHashMap.get(w);
 							mergeImage(images, mergeInfo);
@@ -500,6 +495,8 @@ public class ImageMerge {
 							concurrentHashMap.remove(w);
 							MyUtils.deleteFiles(images);
 						}).start();
+					}else{
+						driver.close();
 					}
 				}
 				driver.switchTo().window(mainWindow);

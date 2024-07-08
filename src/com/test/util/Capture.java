@@ -58,6 +58,7 @@ public class Capture {
 
 	private String saveDir = "src/images/";
 
+	private By by = By.xpath("/html/body");
 	public Capture(String base_url, boolean show) throws Exception {
 		
 		super();
@@ -203,7 +204,7 @@ public class Capture {
 				for (String w : driver.getWindowHandles()) {
 					if (w.equals(mainWindow))
 						continue; 
-					images = im.imageSave(mainWindow, w);
+					images = im.imageSave(mainWindow, w,by);
 					fileName = im.getFileName();
 					im.mergeImage(images,null);
 				}
@@ -340,7 +341,7 @@ public class Capture {
 					for (String w : driver.getWindowHandles()) {
 						if (w.equals(mainWindow))
 							continue; 
-						images = im.imageSave(mainWindow, w);
+						images = im.imageSave(mainWindow, w,by);
 						fileName = im.getFileName();
 						im.mergeImage(images,null);
 					}
@@ -358,7 +359,7 @@ public class Capture {
 		for (String w : driver.getWindowHandles()) {
 			if (w.equals(mainWindow)) continue;
 
-			images = im.imageSave(mainWindow, w);
+			images = im.imageSave(mainWindow, w,by);
 			fileName = im.getFileName();
 			im.mergeImage(images,null);
 		}
